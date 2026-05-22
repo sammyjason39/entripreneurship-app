@@ -125,9 +125,31 @@ function LoginForm() {
   );
 }
 
+const ENTRIP_LOGO_SRC = '/brands/logo-entrip.png';
+
+function LoginWelcome() {
+  return (
+    <div className="mb-8 text-center">
+      <p className="font-display text-[10px] uppercase tracking-[0.35em] text-text-secondary">
+        Welcome to
+      </p>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={ENTRIP_LOGO_SRC}
+        alt="EnTripreneurship Vol. 02"
+        width={320}
+        height={120}
+        className="mx-auto mt-3 w-full max-w-[min(100%,20rem)] object-contain"
+        style={{ width: 'auto', maxWidth: '20rem', height: 'auto' }}
+      />
+    </div>
+  );
+}
+
 export default function LoginPage() {
   return (
     <main className="flex min-h-dvh flex-col justify-center p-6">
+      <LoginWelcome />
       <Suspense fallback={<p className="animate-blink text-center font-display text-xs">LOADING...</p>}>
         <LoginForm />
       </Suspense>

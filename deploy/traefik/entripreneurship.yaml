@@ -1,15 +1,17 @@
 # Coolify Traefik dynamic config — copy to /data/coolify/proxy/dynamic/ on the VPS.
 # Routes entripreneurship.fun → PM2 Next.js on host port 3002 (Let's Encrypt via Coolify proxy).
+# HTTP redirect must exclude ACME challenge path or Let's Encrypt will fail.
 
 http:
   routers:
     entripreneurship-http:
       entryPoints:
         - http
-      rule: Host(`entripreneurship.fun`) || Host(`www.entripreneurship.fun`)
+      rule: '(Host(`entripreneurship.fun`) || Host(`www.entripreneurship.fun`)) && !PathPrefix(`/.well-known/acme-challenge/`)'
       middlewares:
         - redirect-to-https
       service: entripreneurship
+      priority: 10
     entripreneurship-https:
       entryPoints:
         - https
