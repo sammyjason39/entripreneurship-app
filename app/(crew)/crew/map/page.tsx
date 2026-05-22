@@ -3,12 +3,13 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { MapView } from '@/components/app/MapView';
+import type { TeamMapPing } from '@/components/app/EventLeafletMap';
 import type { Station } from '@/lib/types';
 import { teamNameFromJoin } from '@/lib/supabase-helpers';
 
 export default function CrewMapPage() {
   const [stations, setStations] = useState<Station[]>([]);
-  const [dots, setDots] = useState<{ team: string; lat: number; lng: number }[]>([]);
+  const [teamPings, setTeamPings] = useState<TeamMapPing[]>([]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -23,7 +24,7 @@ export default function CrewMapPage() {
         .order('pinged_at', { ascending: false });
 
       const seen = new Set<string>();
-      const latest: { team: string; lat: number; lng: number }[] = [];
+      const latest: TeamMapPing[] = [];
       data?.forEach((p) => {
         if (!p.team_id || seen.has(p.team_id)) return;
         seen.add(p.team_id);
@@ -33,7 +34,7 @@ export default function CrewMapPage() {
           lng: p.lng,
         });
       });
-      setDots(latest);
+      setTeamPings(latest);
     };
 
     loadPings();
@@ -52,17 +53,10 @@ export default function CrewMapPage() {
   return (
     <main>
       <p className="px-4 pt-4 font-display text-lg">LIVE MAP</p>
-      <p className="px-4 font-body text-[10px] text-text-secondary">
-        {dots.length} teams with location
+      <p className="px-4 pb-2 font-body text-[10px] text-text-secondary">
+        {teamPings.length} teams reporting location on BINUS @ Dago
       </p>
-      <MapView stations={stations} />
-      <div className="p-4 space-y-1">
-        {dots.map((d) => (
-          <p key={d.team} className="font-body text-xs">
-            {d.team} — {d.lat.toFixed(4)}, {d.lng.toFixed(4)}
-          </p>
-        ))}
-      </div>
+      <MapView stations={stations} teamPings={teamPings} />
     </main>
   );
 }
