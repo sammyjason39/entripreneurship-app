@@ -1,10 +1,12 @@
-import { sanitizeWhatsAppSender } from '@/lib/phone';
+import { normalizeWhatsAppPhone, sanitizeWhatsAppSender } from '@/lib/phone';
 
 export type WahaIncomingMessage = {
   event: string;
   session: string;
   chatId: string;
   from: string;
+  /** Resolved Indonesian E.164 without + (e.g. 628978073890), when available */
+  phoneNormalized: string | null;
   body: string;
   fromMe: boolean;
 };
@@ -72,16 +74,94 @@ export function toWahaChatId(fromOrPhone: string): string {
   return `${digits}@c.us`;
 }
 
+function pickJid(...candidates: unknown[]): string {
+  for (const c of candidates) {
+    if (typeof c === 'string' && c.trim()) return c.trim();
+  }
+  return '';
+}
+
+/** NOWEB / GOWS sometimes put the real @c.us JID in _data while `from` is @lid */
+function senderPnFromPayloadData(p: Record<string, unknown>): string {
+  const data = p._data;
+  if (!data || typeof data !== 'object') return '';
+  const d = data as Record<string, unknown>;
+  const key = d.key;
+  if (key && typeof key === 'object') {
+    const k = key as Record<string, unknown>;
+    const senderPn = pickJid(k.senderPn, k.participant);
+    if (senderPn) return senderPn;
+  }
+  const info = d.Info;
+  if (info && typeof info === 'object') {
+    const i = info as Record<string, unknown>;
+    return pickJid(i.SenderAlt, i.senderAlt);
+  }
+  return '';
+}
+
+/** GET /api/{session}/lids/{lid} — map @lid → @c.us */
+export async function resolveLidToChatId(
+  lid: string,
+  session?: string
+): Promise<string | null> {
+  const url = baseUrl();
+  const apiKey = process.env.WAHA_API_KEY?.trim();
+  if (!url || !apiKey || !lid.includes('@lid')) return null;
+
+  const sess = session ?? getWahaSession();
+  const lidParam = encodeURIComponent(lid.includes('@') ? lid : `${lid}@lid`);
+
+  try {
+    const res = await fetch(`${url}/api/${encodeURIComponent(sess)}/lids/${lidParam}`, {
+      headers: { 'X-Api-Key': apiKey, Accept: 'application/json' },
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { pn?: string | null };
+    return typeof data.pn === 'string' && data.pn ? data.pn : null;
+  } catch (e) {
+    console.error('waha/resolveLid', e);
+    return null;
+  }
+}
+
+export async function resolveWahaSenderPhone(
+  from: string,
+  payload: Record<string, unknown>,
+  session: string
+): Promise<string | null> {
+  const candidates = [
+    from,
+    typeof payload.participant === 'string' ? payload.participant : '',
+    senderPnFromPayloadData(payload),
+  ];
+
+  for (const jid of candidates) {
+    const n = normalizeWhatsAppPhone(sanitizeWhatsAppSender(jid));
+    if (n) return n;
+  }
+
+  if (from.includes('@lid')) {
+    const pn = await resolveLidToChatId(from, session);
+    if (pn) {
+      const n = normalizeWhatsAppPhone(sanitizeWhatsAppSender(pn));
+      if (n) return n;
+    }
+  }
+
+  return null;
+}
+
 /**
  * Parse WAHA webhook body (event: message).
  * @see https://waha.devlike.pro/docs/how-to/receive-messages/
  */
-export function parseWahaWebhook(body: unknown): WahaIncomingMessage | null {
+export async function parseWahaWebhook(body: unknown): Promise<WahaIncomingMessage | null> {
   if (!body || typeof body !== 'object') return null;
   const b = body as Record<string, unknown>;
 
   const event = typeof b.event === 'string' ? b.event : '';
-  if (event !== 'message') return null;
+  if (event !== 'message' && event !== 'message.any') return null;
 
   const session = typeof b.session === 'string' ? b.session : getWahaSession();
   const payload = b.payload;
@@ -98,11 +178,14 @@ export function parseWahaWebhook(body: unknown): WahaIncomingMessage | null {
 
   if (!from) return null;
 
+  const phoneNormalized = await resolveWahaSenderPhone(from, p, session);
+
   return {
     event,
     session,
     chatId: from,
     from,
+    phoneNormalized,
     body: bodyText.trim(),
     fromMe: false,
   };
@@ -122,13 +205,27 @@ export function buildLoginSuccessReply(finishUrl: string, fullName?: string): st
   );
 }
 
-export function buildLoginFailureReply(): string {
+export function buildLoginFailureReply(error?: string): string {
+  if (error === 'already_confirmed') {
+    return (
+      `✅ This code was already accepted.\n\n` +
+      `Open the login page in your browser and tap *I sent the message — check now*, ` +
+      `or request a new code if you need a fresh link.`
+    );
+  }
+  if (error === 'expired') {
+    return (
+      `❌ This code has expired (10 minutes).\n\n` +
+      `Open https://entripreneurship.fun/auth/login, enter your number again, ` +
+      `and send the *new* message shown on screen.`
+    );
+  }
   return (
-    `❌ That login code didn't work or has expired.\n\n` +
+    `❌ That login code didn't work.\n\n` +
     `1. Open https://entripreneurship.fun/auth/login\n` +
-    `2. Enter your WhatsApp number\n` +
-    `3. Send the *exact* message shown (with the 6-character code)\n\n` +
-    `Codes expire after 10 minutes.`
+    `2. Enter your WhatsApp number (same as on the registration form)\n` +
+    `3. Send the *exact* new message shown (with the 6-character code)\n\n` +
+    `Do not reuse an old code. Codes expire after 10 minutes.`
   );
 }
 

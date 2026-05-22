@@ -20,20 +20,18 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const incoming = parseWahaWebhook(body);
+    const incoming = await parseWahaWebhook(body);
 
     if (!incoming) {
       return NextResponse.json({ ok: true, ignored: true, reason: 'not_inbound_message' });
     }
-
-    const phoneFromChat = sanitizeWhatsAppSender(incoming.from);
 
     if (!isLoginRelatedMessage(incoming.body)) {
       return NextResponse.json({ ok: true, ignored: true, reason: 'not_login_message' });
     }
 
     const result = await processInboundWhatsAppLogin({
-      phone: phoneFromChat,
+      phone: incoming.phoneNormalized ?? sanitizeWhatsAppSender(incoming.from),
       message: incoming.body,
     });
 
@@ -49,16 +47,24 @@ export async function POST(request: Request) {
     }
 
     if (result.kind === 'invalid_payload' || result.kind === 'failed') {
+      const errCode = result.kind === 'failed' ? result.error : 'invalid_payload';
       if (isWahaConfigured()) {
         await sendWahaText({
           chatId: incoming.chatId,
-          text: buildLoginFailureReply(),
+          text: buildLoginFailureReply(errCode),
           session: incoming.session,
         });
       }
+      console.warn('whatsapp/waha login failed', {
+        from: incoming.from,
+        phoneNormalized: incoming.phoneNormalized,
+        error: errCode,
+      });
       return NextResponse.json({
         ok: false,
-        error: result.kind === 'failed' ? result.error : 'invalid_or_expired',
+        error: errCode,
+        from: incoming.from,
+        phoneResolved: incoming.phoneNormalized,
       });
     }
 

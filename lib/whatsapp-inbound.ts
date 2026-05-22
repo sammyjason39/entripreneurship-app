@@ -49,11 +49,14 @@ export async function processInboundWhatsAppLogin(body: {
     return { kind: 'not_login' };
   }
 
-  if (!normalized || code.length !== 6) {
+  if (code.length !== 6) {
     return { kind: 'invalid_payload' };
   }
 
-  const result = await confirmWhatsAppLogin({ phone: normalized, code });
+  const result = await confirmWhatsAppLogin({
+    phone: normalized ?? '',
+    code,
+  });
   if (!result.ok) {
     return { kind: 'failed', error: result.error };
   }
@@ -63,6 +66,6 @@ export async function processInboundWhatsAppLogin(body: {
     challengeId: result.challengeId,
     userId: result.userId,
     finishUrl: result.finishUrl,
-    normalizedPhone: normalized,
+    normalizedPhone: result.normalizedPhone,
   };
 }

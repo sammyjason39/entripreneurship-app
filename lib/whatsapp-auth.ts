@@ -125,33 +125,63 @@ export async function confirmWhatsAppLogin(params: {
   phone: string;
   code: string;
 }) {
-  const normalized = normalizeWhatsAppPhone(params.phone);
   const code = params.code.trim().toUpperCase();
-  if (!normalized || code.length !== 6) {
+  if (code.length !== 6) {
     return { ok: false as const, error: 'invalid_payload' };
   }
+
+  const normalizedInput = params.phone
+    ? normalizeWhatsAppPhone(params.phone)
+    : null;
 
   const service = await createServiceClient();
   const now = new Date().toISOString();
 
-  let challenge: { id: string; registration_id: string; whatsapp_normalized: string } | null =
-    null;
-
-  const { data: byPhone, error: findError } = await service
+  // Already confirmed — resend finish link (user retried same code in WhatsApp)
+  const { data: already } = await service
     .from('whatsapp_login_challenges')
-    .select('id, registration_id, whatsapp_normalized')
-    .eq('whatsapp_normalized', normalized)
+    .select('id, status, registration_id, whatsapp_normalized')
     .eq('code', code)
-    .eq('status', 'pending')
-    .gt('expires_at', now)
+    .eq('status', 'confirmed')
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
 
-  if (findError) throw new Error(findError.message);
-  challenge = byPhone;
+  if (already) {
+    const { data: reg } = await service
+      .from('event_registrations')
+      .select('user_id')
+      .eq('id', already.registration_id)
+      .single();
+    return {
+      ok: true as const,
+      challengeId: already.id,
+      userId: reg?.user_id ?? '',
+      finishUrl: buildFinishUrl(already.id),
+      normalizedPhone: already.whatsapp_normalized,
+    };
+  }
 
-  // Fallback: n8n sometimes sends a mismatched phone format — match pending code only
+  let challenge: { id: string; registration_id: string; whatsapp_normalized: string } | null =
+    null;
+
+  if (normalizedInput) {
+    const { data: byPhone, error: findError } = await service
+      .from('whatsapp_login_challenges')
+      .select('id, registration_id, whatsapp_normalized')
+      .eq('whatsapp_normalized', normalizedInput)
+      .eq('code', code)
+      .eq('status', 'pending')
+      .gt('expires_at', now)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (findError) throw new Error(findError.message);
+    challenge = byPhone;
+  }
+
+  // WAHA @lid / wrong JID — match latest pending challenge by code only
   if (!challenge) {
     const { data: byCode, error: codeErr } = await service
       .from('whatsapp_login_challenges')
@@ -169,6 +199,8 @@ export async function confirmWhatsAppLogin(params: {
   if (!challenge) {
     return { ok: false as const, error: 'invalid_or_expired' };
   }
+
+  const normalized = challenge.whatsapp_normalized;
 
   const { data: reg, error: regError } = await service
     .from('event_registrations')
@@ -236,6 +268,7 @@ export async function confirmWhatsAppLogin(params: {
     challengeId: challenge.id,
     userId,
     finishUrl: buildFinishUrl(challenge.id),
+    normalizedPhone: normalized,
   };
 }
 
