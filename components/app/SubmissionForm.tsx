@@ -12,9 +12,16 @@ interface SubmissionFormProps {
   teamId: string;
   userId: string;
   existingId?: string;
+  companyTrack?: string | null;
 }
 
-export function SubmissionForm({ station, teamId, userId, existingId }: SubmissionFormProps) {
+export function SubmissionForm({
+  station,
+  teamId,
+  userId,
+  existingId,
+  companyTrack,
+}: SubmissionFormProps) {
   const router = useRouter();
   const [summary, setSummary] = useState('');
   const [file, setFile] = useState<File | null>(null);
@@ -59,6 +66,9 @@ export function SubmissionForm({ station, teamId, userId, existingId }: Submissi
     }
 
     const form_data: Record<string, string> = { summary };
+    if (station.number === 1 && companyTrack) {
+      form_data.company_track = companyTrack;
+    }
     fields.forEach((f) => {
       if (f.name !== 'summary' && f.name in { summary }) return;
     });

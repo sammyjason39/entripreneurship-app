@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { SubmissionForm } from '@/components/app/SubmissionForm';
 import { StationMaterialsPanel } from '@/components/learn/StationMaterialsPanel';
 import { notFound } from 'next/navigation';
+import type { CompanySlug } from '@/lib/content-types';
+import { isCompanySlug } from '@/lib/event-tracks';
 
 export default async function MissionDetailPage({
   params,
@@ -50,7 +52,10 @@ export default async function MissionDetailPage({
   }
 
   const ceoMember = teamData?.members.find((m) => m.team_role === 'CEO');
-  const canSubmit = isCeo && checkedIn && teamData;
+  const rawTrack = teamData?.team.company_track ?? null;
+  const companyTrack = rawTrack && isCompanySlug(rawTrack) ? (rawTrack as CompanySlug) : null;
+  const needsTrack = station.number === 1;
+  const canSubmit = isCeo && checkedIn && teamData && (!needsTrack || !!companyTrack);
 
   return (
     <main className="space-y-4 p-4">
@@ -60,8 +65,28 @@ export default async function MissionDetailPage({
         <p className="font-body text-sm text-text-secondary mt-2">{station.activity_description}</p>
       </div>
 
-      {station.number === 1 && <StationMaterialsPanel stationNumber={1} />}
-      {station.number === 3 && <StationMaterialsPanel stationNumber={3} />}
+      {station.number === 1 && (
+        <StationMaterialsPanel
+          stationNumber={1}
+          companyTrack={companyTrack}
+          isCeo={!!isCeo}
+        />
+      )}
+      {station.number === 3 && (
+        <StationMaterialsPanel
+          stationNumber={3}
+          companyTrack={companyTrack}
+          isCeo={!!isCeo}
+        />
+      )}
+
+      {needsTrack && teamData && !companyTrack && checkedIn && isCeo && (
+        <Card className="border-accent-yellow/50">
+          <p className="font-body text-sm">
+            Pilih trek perusahaan di atas sebelum submit Pos 1.
+          </p>
+        </Card>
+      )}
 
       {!checkedIn && teamData && (
         <Card className="border-accent-yellow/50 space-y-3">
@@ -121,12 +146,18 @@ export default async function MissionDetailPage({
             teamId={teamData!.team.id}
             userId={user.id}
             existingId={submission.id}
+            companyTrack={companyTrack}
           />
         </Card>
       )}
 
       {canSubmit && !submission && (
-        <SubmissionForm station={station} teamId={teamData.team.id} userId={user.id} />
+        <SubmissionForm
+          station={station}
+          teamId={teamData.team.id}
+          userId={user.id}
+          companyTrack={companyTrack}
+        />
       )}
     </main>
   );

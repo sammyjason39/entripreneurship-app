@@ -86,6 +86,7 @@ export interface Team {
   join_code: string;
   balance: number;
   business_idea: string | null;
+  company_track: string | null;
   innovative_score: number | null;
   outfit_score: number | null;
   created_at: string;
