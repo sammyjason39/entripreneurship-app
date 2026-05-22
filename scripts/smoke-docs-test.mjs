@@ -17,7 +17,12 @@ const env = Object.fromEntries(
     })
 );
 
-const BASE = process.env.SMOKE_BASE || 'http://localhost:3000';
+const BASE_CANDIDATES = [
+  process.env.SMOKE_BASE,
+  'http://localhost:3000',
+  'http://localhost:3001',
+].filter(Boolean);
+let BASE = BASE_CANDIDATES[0] || 'http://localhost:3000';
 const admin = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
   auth: { persistSession: false },
 });
@@ -36,15 +41,20 @@ async function fetchStatus(path, opts = {}) {
   return res;
 }
 
-/** Dev server may return 500 while Next.js is still compiling. */
+/** Dev server may return 500 while Next.js is still compiling; try 3000 and 3001. */
 async function waitForServer(maxMs = 90_000) {
   const start = Date.now();
   while (Date.now() - start < maxMs) {
-    try {
-      const res = await fetch(`${BASE}/api/health`);
-      if (res.ok) return true;
-    } catch {
-      /* not up yet */
+    for (const origin of BASE_CANDIDATES.length ? BASE_CANDIDATES : ['http://localhost:3000']) {
+      try {
+        const res = await fetch(`${origin}/api/health`);
+        if (res.ok) {
+          BASE = origin;
+          return true;
+        }
+      } catch {
+        /* not up yet */
+      }
     }
     await new Promise((r) => setTimeout(r, 750));
   }
@@ -75,10 +85,10 @@ const CREW_PIN = '888888';
 
 async function main() {
   if (!(await waitForServer())) {
-    fail('dev server ready', `Start npm run dev on ${BASE}`);
+    fail('dev server ready', 'Start npm run dev (port 3000 or 3001)');
     printAndExit();
   }
-  pass('dev server ready');
+  pass('dev server ready', BASE);
 
   if (COMPANY_SLUGS.length === 5) pass('content: 5 companies (case study + innovation card each)');
 

@@ -2,6 +2,8 @@
 
 End-to-end guides for the participant PWA at **https://entripreneurship.fun** (or local `http://localhost:3000`).
 
+**Web version (HTML):** [https://entripreneurship.fun/docs](https://entripreneurship.fun/docs)
+
 | Audience | Guide | Login |
 |----------|--------|--------|
 | **Participants** (teams) | [GUIDE_PARTICIPANT.md](./GUIDE_PARTICIPANT.md) | WhatsApp OTP |

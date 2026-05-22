@@ -37,6 +37,7 @@ Run SQL migrations in order in Supabase SQL Editor:
 5. `007_spend_balance_trigger.sql` — deduct reduces balance  
 6. `008_station_visits.sql` — station QR tokens, visits  
 7. `009_content_metadata.sql` — structured booklet content  
+8. `010_transactions_insert_rls.sql` — crew pay, transfers, QR EnCoin inserts  
 
 Then:
 

@@ -99,12 +99,14 @@ Use Node 20+, enable HTTPS, and set `NEXT_PUBLIC_APP_URL` to your public URL.
 
 ## Documentation (end-to-end)
 
-| Audience | Guide |
-|----------|--------|
-| Participants | [docs/GUIDE_PARTICIPANT.md](docs/GUIDE_PARTICIPANT.md) |
-| Crew | [docs/GUIDE_CREW.md](docs/GUIDE_CREW.md) |
-| Admin / jury | [docs/GUIDE_ADMIN.md](docs/GUIDE_ADMIN.md) |
-| Index + testing | [docs/README.md](docs/README.md), [docs/TESTING.md](docs/TESTING.md) |
+**On the site:** [/docs](https://entripreneurship.fun/docs) — all guides rendered as HTML (public, no login).
+
+| Audience | Web | Markdown |
+|----------|-----|----------|
+| Participants | [/docs/guide-participant](/docs/guide-participant) | [docs/GUIDE_PARTICIPANT.md](docs/GUIDE_PARTICIPANT.md) |
+| Crew | [/docs/guide-crew](/docs/guide-crew) | [docs/GUIDE_CREW.md](docs/GUIDE_CREW.md) |
+| Admin / jury | [/docs/guide-admin](/docs/guide-admin) | [docs/GUIDE_ADMIN.md](docs/GUIDE_ADMIN.md) |
+| Index + testing | [/docs](/docs) | [docs/README.md](docs/README.md) |
 
 ## Routes
 

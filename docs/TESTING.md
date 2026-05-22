@@ -11,7 +11,7 @@ Documentation in this repo was written **after** running automated smoke tests a
 | `npm run verify:supabase` | Tables seeded (stations, content, etc.) |
 | `npm run build` | TypeScript + Next.js production build |
 
-**Prerequisite:** `npm run dev` on port 3000 and `.env.local` with Supabase keys.
+**Prerequisite:** `npm run dev` (usually port 3000; if busy, Next uses **3001** — smoke tests auto-detect both) and `.env.local` with Supabase keys.
 
 ## Latest smoke run (local)
 
