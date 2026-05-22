@@ -10,8 +10,9 @@ Participants are pre-registered from the Microsoft Forms CSV. They **do not** si
    - Message to send: `Hi Connext! Let me login to entripreneurship.fun (K7M2P4)`
    - Button: **Open WhatsApp** (`https://wa.me/447441424421?text=...`)
 4. User sends that message to your **AI WhatsApp bot number**.
-5. **n8n** receives the message and calls our webhook with the sender phone + code.
-6. App marks the challenge **confirmed**; the browser polls until it redirects to finish login.
+5. **WAHA** (recommended) posts every message to `/api/auth/whatsapp/waha` — see **`docs/WHATSAPP_WAHA.md`**.  
+   Or **n8n** calls `/api/auth/whatsapp/webhook` with phone + code.
+6. App marks the challenge **confirmed** and sends the **finish link** back on WhatsApp (WAHA) / browser polls.
 7. User lands in onboarding (PIN, team, etc.) like before.
 
 ## Setup checklist
@@ -104,7 +105,9 @@ If the key is wrong or missing → `401 Unauthorized`.
 {
   "ok": true,
   "challengeId": "uuid-of-challenge",
-  "userId": "uuid-of-supabase-user"
+  "userId": "uuid-of-supabase-user",
+  "finishUrl": "https://entripreneurship.fun/api/auth/whatsapp/finish?challengeId=uuid-of-challenge",
+  "hint": "Send finishUrl to the user on WhatsApp so they can open the app in one tap."
 }
 ```
 
@@ -129,7 +132,10 @@ If the key is wrong or missing → `401 Unauthorized`.
    - URL: `https://entripreneurship.fun/api/auth/whatsapp/webhook`
    - Headers: `x-api-key` = `{{ $env.WHATSAPP_WEBHOOK_API_KEY }}`
    - Body: JSON as above
-5. **Optional** — Reply on WhatsApp: “You’re logged in! Return to the browser.”
+5. **WhatsApp reply (recommended)** — On `200`, the webhook returns `finishUrl`. Send it to the user:
+   - “You’re verified. Tap to open the app: {{ $json.finishUrl }}”
+   - This works when the browser tab was in the background (common on mobile).
+6. **Optional** — User can also return to Chrome and tap **I sent the message — check now**.
 
 ### Phone normalization tip
 
@@ -160,7 +166,9 @@ Indonesian numbers often arrive as `0897…` or `897…`. The app stores `628…
 | Problem | Fix |
 |---------|-----|
 | “Not on registration list” | Re-run import script; check phone matches form |
-| Webhook 404 | Code typo, expired, or phone mismatch vs browser |
+| Webhook 404 | Code typo, expired, or phone mismatch vs browser (webhook also matches by code alone as fallback) |
+| Browser stuck on “Waiting…” | Mobile tab throttled — user taps **Check now** or open `finishUrl` from WhatsApp |
+| Magic link fails | Add `https://entripreneurship.fun/**` to Supabase → Auth → URL configuration → Redirect URLs |
 | WhatsApp button missing | Set `WHATSAPP_BOT_NUMBER` |
 | Login loop after confirm | Check `NEXT_PUBLIC_APP_URL` matches live domain |
 | n8n 401 | Match `x-api-key` to server `WHATSAPP_WEBHOOK_API_KEY` |

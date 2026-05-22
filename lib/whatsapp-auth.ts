@@ -46,6 +46,17 @@ export function buildWhatsAppDeepLink(code: string): string | null {
   return `https://wa.me/${bot}?text=${text}`;
 }
 
+export function getAppOrigin(): string {
+  const raw = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (raw) return raw.replace(/\/$/, '');
+  return 'http://localhost:3000';
+}
+
+/** One-tap link for the user after n8n confirms the OTP (also used by browser polling). */
+export function buildFinishUrl(challengeId: string): string {
+  return `${getAppOrigin()}/api/auth/whatsapp/finish?challengeId=${encodeURIComponent(challengeId)}`;
+}
+
 function syntheticEmail(normalizedPhone: string): string {
   return `wa+${normalizedPhone}@entripreneurship.fun`;
 }
@@ -123,9 +134,12 @@ export async function confirmWhatsAppLogin(params: {
   const service = await createServiceClient();
   const now = new Date().toISOString();
 
-  const { data: challenge, error: findError } = await service
+  let challenge: { id: string; registration_id: string; whatsapp_normalized: string } | null =
+    null;
+
+  const { data: byPhone, error: findError } = await service
     .from('whatsapp_login_challenges')
-    .select('id, registration_id')
+    .select('id, registration_id, whatsapp_normalized')
     .eq('whatsapp_normalized', normalized)
     .eq('code', code)
     .eq('status', 'pending')
@@ -135,6 +149,23 @@ export async function confirmWhatsAppLogin(params: {
     .maybeSingle();
 
   if (findError) throw new Error(findError.message);
+  challenge = byPhone;
+
+  // Fallback: n8n sometimes sends a mismatched phone format — match pending code only
+  if (!challenge) {
+    const { data: byCode, error: codeErr } = await service
+      .from('whatsapp_login_challenges')
+      .select('id, registration_id, whatsapp_normalized')
+      .eq('code', code)
+      .eq('status', 'pending')
+      .gt('expires_at', now)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (codeErr) throw new Error(codeErr.message);
+    challenge = byCode;
+  }
+
   if (!challenge) {
     return { ok: false as const, error: 'invalid_or_expired' };
   }
@@ -200,7 +231,12 @@ export async function confirmWhatsAppLogin(params: {
 
   if (confirmError) throw new Error(confirmError.message);
 
-  return { ok: true as const, challengeId: challenge.id, userId };
+  return {
+    ok: true as const,
+    challengeId: challenge.id,
+    userId,
+    finishUrl: buildFinishUrl(challenge.id),
+  };
 }
 
 export async function getChallengeStatus(challengeId: string) {
@@ -252,7 +288,7 @@ export async function consumeChallengeForSession(challengeId: string) {
   if (!reg?.user_id) return { ok: false as const, error: 'no_user' };
 
   const email = syntheticEmail(challenge.whatsapp_normalized);
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+  const appUrl = getAppOrigin();
 
   const { data: linkData, error: linkError } = await service.auth.admin.generateLink({
     type: 'magiclink',

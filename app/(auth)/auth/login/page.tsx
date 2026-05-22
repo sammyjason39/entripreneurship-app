@@ -11,6 +11,17 @@ import { friendlyAuthError } from '@/lib/auth-messages';
 
 type Step = 'phone' | 'whatsapp';
 
+const WA_LOGIN_STORAGE_KEY = 'entrip_wa_login_v1';
+
+type SavedWaLogin = {
+  challengeId: string;
+  code: string;
+  message: string;
+  waUrl: string | null;
+  fullName: string;
+  phone: string;
+};
+
 function CrewLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -96,6 +107,7 @@ function LoginForm() {
   const [waUrl, setWaUrl] = useState<string | null>(null);
   const [fullName, setFullName] = useState('');
   const [polling, setPolling] = useState(false);
+  const [checking, setChecking] = useState(false);
 
   useEffect(() => {
     const err = searchParams.get('error');
@@ -105,6 +117,33 @@ function LoginForm() {
       setError('Could not complete login. Please start again.');
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(WA_LOGIN_STORAGE_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as SavedWaLogin;
+      if (!saved.challengeId) return;
+      setChallengeId(saved.challengeId);
+      setCode(saved.code);
+      setMessage(saved.message);
+      setWaUrl(saved.waUrl);
+      setFullName(saved.fullName);
+      setPhone(saved.phone);
+      setStep('whatsapp');
+      setPolling(true);
+    } catch {
+      sessionStorage.removeItem(WA_LOGIN_STORAGE_KEY);
+    }
+  }, []);
+
+  const persistLogin = (payload: SavedWaLogin) => {
+    sessionStorage.setItem(WA_LOGIN_STORAGE_KEY, JSON.stringify(payload));
+  };
+
+  const clearPersistedLogin = () => {
+    sessionStorage.removeItem(WA_LOGIN_STORAGE_KEY);
+  };
 
   const startLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,36 +160,72 @@ function LoginForm() {
       setError(data.message ?? 'Could not start WhatsApp login.');
       return;
     }
-    setChallengeId(data.challengeId);
-    setCode(data.code);
-    setMessage(data.message);
-    setWaUrl(data.waUrl ?? null);
-    setFullName(data.fullName ?? '');
+    const payload: SavedWaLogin = {
+      challengeId: data.challengeId,
+      code: data.code,
+      message: data.message,
+      waUrl: data.waUrl ?? null,
+      fullName: data.fullName ?? '',
+      phone,
+    };
+    setChallengeId(payload.challengeId);
+    setCode(payload.code);
+    setMessage(payload.message);
+    setWaUrl(payload.waUrl);
+    setFullName(payload.fullName);
+    persistLogin(payload);
     setStep('whatsapp');
     setPolling(true);
   };
 
   const pollStatus = useCallback(async () => {
-    if (!challengeId) return;
-    const res = await fetch(`/api/auth/whatsapp/status?challengeId=${encodeURIComponent(challengeId)}`);
-    const data = await res.json();
+    if (!challengeId) return false;
+    const res = await fetch(
+      `/api/auth/whatsapp/status?challengeId=${encodeURIComponent(challengeId)}`,
+      { cache: 'no-store' }
+    );
+    const data = await res.json().catch(() => ({}));
     if (data.status === 'confirmed' && data.finishUrl) {
       setPolling(false);
-      window.location.href = data.finishUrl;
-      return;
+      clearPersistedLogin();
+      window.location.href = data.finishUrl as string;
+      return true;
     }
     if (data.status === 'expired') {
       setPolling(false);
+      clearPersistedLogin();
       setError('Code expired. Enter your number again.');
       setStep('phone');
+      return true;
     }
+    if (!res.ok) {
+      setError((data as { error?: string }).error ?? 'Could not check login status.');
+    }
+    return false;
   }, [challengeId]);
+
+  const checkNow = async () => {
+    setChecking(true);
+    setError('');
+    await pollStatus();
+    setChecking(false);
+  };
 
   useEffect(() => {
     if (!polling || !challengeId) return;
-    const id = setInterval(pollStatus, 2500);
-    pollStatus();
-    return () => clearInterval(id);
+    const tick = () => {
+      if (document.visibilityState === 'visible') void pollStatus();
+    };
+    const id = setInterval(tick, document.visibilityState === 'visible' ? 1500 : 4000);
+    tick();
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void pollStatus();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, [polling, challengeId, pollStatus]);
 
   if (step === 'whatsapp') {
@@ -186,15 +261,24 @@ function LoginForm() {
             </p>
           )}
           <p className="font-body text-xs text-text-secondary text-center animate-blink">
-            Waiting for your message…
+            After you send the message in WhatsApp, return to this tab. We check every few seconds,
+            or tap the button below.
+          </p>
+          <p className="font-body text-xs text-text-secondary text-center">
+            Connext can also send you a <strong className="text-text-primary">login link</strong> in
+            WhatsApp — open that link if the browser does not move on its own.
           </p>
           {error && <p className="text-sm text-accent-red">{error}</p>}
+          <Button type="button" className="w-full" disabled={checking} onClick={checkNow}>
+            {checking ? 'CHECKING…' : 'I SENT THE MESSAGE — CHECK NOW'}
+          </Button>
           <Button
             type="button"
             variant="outline"
             className="w-full"
             onClick={() => {
               setPolling(false);
+              clearPersistedLogin();
               setStep('phone');
               setError('');
             }}

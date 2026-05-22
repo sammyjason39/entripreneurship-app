@@ -1,6 +1,11 @@
+/** Strip WhatsApp JID suffixes (`628...@s.whatsapp.net`) before normalization. */
+export function sanitizeWhatsAppSender(input: string): string {
+  return input.trim().replace(/@s\.whatsapp\.net$/i, '').replace(/@c\.us$/i, '');
+}
+
 /** Normalize Indonesian WhatsApp numbers to E.164 without + (e.g. 628978073890). */
 export function normalizeWhatsAppPhone(input: string): string | null {
-  let digits = input.replace(/\D/g, '');
+  let digits = sanitizeWhatsAppSender(input).replace(/\D/g, '');
   if (!digits) return null;
 
   if (digits.startsWith('62')) {
@@ -8,6 +13,9 @@ export function normalizeWhatsAppPhone(input: string): string | null {
   } else if (digits.startsWith('0')) {
     digits = `62${digits.slice(1)}`;
   } else if (digits.startsWith('8')) {
+    digits = `62${digits}`;
+  } else if (digits.startsWith('9') && digits.length >= 9 && digits.length <= 11) {
+    // Some gateways send local mobile without leading 0/8 (e.g. 978073890)
     digits = `62${digits}`;
   } else {
     return null;

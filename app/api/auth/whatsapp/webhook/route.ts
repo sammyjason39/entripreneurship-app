@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server';
 import { requireWebhookApiKey } from '@/lib/webhook-auth';
-import {
-  confirmWhatsAppLogin,
-  parseCodeFromMessage,
-} from '@/lib/whatsapp-auth';
-import { normalizeWhatsAppPhone } from '@/lib/phone';
+import { processInboundWhatsAppLogin } from '@/lib/whatsapp-inbound';
+import { sanitizeWhatsAppSender } from '@/lib/phone';
+import { buildLoginSuccessReply, isWahaConfigured, sendWahaText, toWahaChatId } from '@/lib/waha';
 
 /**
- * Called by n8n when your WhatsApp bot receives the Connext login message
+ * Generic JSON webhook (n8n or manual). Prefer /api/auth/whatsapp/waha for WAHA.
  * See docs/WHATSAPP_LOGIN.md
  */
 export async function POST(request: Request) {
@@ -21,24 +19,30 @@ export async function POST(request: Request) {
       (typeof body.phone === 'string' && body.phone) ||
       (typeof body.whatsapp === 'string' && body.whatsapp) ||
       (typeof body.from === 'string' && body.from) ||
+      (typeof body.sender === 'string' && body.sender) ||
+      (typeof body.remoteJid === 'string' && body.remoteJid) ||
       '';
 
-    let code =
+    const messageText =
+      (typeof body.message === 'string' && body.message) ||
+      (typeof body.text === 'string' && body.text) ||
+      (typeof body.body === 'string' && body.body) ||
+      '';
+
+    const code =
       (typeof body.code === 'string' && body.code) ||
       (typeof body.otp === 'string' && body.otp) ||
       '';
 
-    if (!code && typeof body.message === 'string') {
-      code = parseCodeFromMessage(body.message) ?? '';
-    }
+    phone = sanitizeWhatsAppSender(phone);
 
-    if (!phone && typeof body.message === 'string') {
-      // n8n may only forward message + sender in separate fields
-      phone = typeof body.sender === 'string' ? body.sender : phone;
-    }
+    const result = await processInboundWhatsAppLogin({
+      phone,
+      message: messageText,
+      code,
+    });
 
-    const normalized = normalizeWhatsAppPhone(phone);
-    if (!normalized || !code) {
+    if (result.kind === 'invalid_payload') {
       return NextResponse.json(
         {
           ok: false,
@@ -49,16 +53,27 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = await confirmWhatsAppLogin({ phone: normalized, code });
-    if (!result.ok) {
+    if (result.kind === 'failed') {
       return NextResponse.json({ ok: false, error: result.error }, { status: 404 });
     }
 
-    return NextResponse.json({
-      ok: true,
-      challengeId: result.challengeId,
-      userId: result.userId,
-    });
+    if (result.kind === 'confirmed') {
+      if (isWahaConfigured() && phone) {
+        await sendWahaText({
+          chatId: toWahaChatId(phone),
+          text: buildLoginSuccessReply(result.finishUrl),
+        });
+      }
+
+      return NextResponse.json({
+        ok: true,
+        challengeId: result.challengeId,
+        userId: result.userId,
+        finishUrl: result.finishUrl,
+      });
+    }
+
+    return NextResponse.json({ ok: true, ignored: true, reason: result.kind });
   } catch (e) {
     console.error('whatsapp/webhook', e);
     return NextResponse.json({ ok: false, error: 'server_error' }, { status: 500 });

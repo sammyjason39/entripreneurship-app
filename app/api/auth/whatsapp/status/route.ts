@@ -15,13 +15,13 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: result.error }, { status: 404 });
     }
 
+    const origin = new URL(request.url).origin;
+    const finishPath = `/api/auth/whatsapp/finish?challengeId=${encodeURIComponent(challengeId)}`;
+
     return NextResponse.json({
       status: result.status,
       confirmedAt: result.confirmedAt ?? null,
-      finishUrl:
-        result.status === 'confirmed'
-          ? `/api/auth/whatsapp/finish?challengeId=${encodeURIComponent(challengeId)}`
-          : null,
+      finishUrl: result.status === 'confirmed' ? `${origin}${finishPath}` : null,
     });
   } catch (e) {
     console.error('whatsapp/status', e);
