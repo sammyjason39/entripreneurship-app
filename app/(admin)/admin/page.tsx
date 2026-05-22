@@ -84,6 +84,11 @@ export default async function AdminDashboardPage() {
                 Participants ({regStats.total})
               </Button>
             </Link>
+            <Link href="/admin/teams">
+              <Button size="sm" variant="outline">
+                Team funds
+              </Button>
+            </Link>
           </div>
         </Card>
 

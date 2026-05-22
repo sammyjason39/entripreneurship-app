@@ -8,6 +8,7 @@ import { LogoutButton } from '@/components/app/LogoutButton';
 const links = [
   { href: '/admin', label: 'Dashboard', exact: true },
   { href: '/admin/participants', label: 'Participants' },
+  { href: '/admin/teams', label: 'Team funds' },
   { href: '/admin/crew', label: 'Crew & jury' },
   { href: '/crew/submissions', label: 'Submissions' },
   { href: '/crew/leaderboard', label: 'Leaderboard' },

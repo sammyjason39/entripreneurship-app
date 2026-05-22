@@ -16,6 +16,8 @@ export interface Profile {
   id: string;
   full_name: string;
   app_role: AppRole;
+  student_id?: string | null;
+  whatsapp_normalized?: string | null;
   pin_hash: string | null;
   qr_token: string | null;
   onboarding_complete: boolean;
