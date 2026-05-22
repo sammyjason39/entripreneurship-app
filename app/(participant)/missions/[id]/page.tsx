@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { SubmissionForm } from '@/components/app/SubmissionForm';
+import { StationMaterialsPanel } from '@/components/learn/StationMaterialsPanel';
 import { notFound } from 'next/navigation';
 
 export default async function MissionDetailPage({
@@ -58,6 +59,9 @@ export default async function MissionDetailPage({
         <h1 className="font-display text-lg">{station.name}</h1>
         <p className="font-body text-sm text-text-secondary mt-2">{station.activity_description}</p>
       </div>
+
+      {station.number === 1 && <StationMaterialsPanel stationNumber={1} />}
+      {station.number === 3 && <StationMaterialsPanel stationNumber={3} />}
 
       {!checkedIn && teamData && (
         <Card className="border-accent-yellow/50 space-y-3">

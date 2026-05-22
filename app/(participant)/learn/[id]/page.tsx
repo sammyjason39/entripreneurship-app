@@ -1,6 +1,9 @@
-import { createClient } from '@/lib/supabase/server';
-import { Card } from '@/components/ui/card';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { resolveContent } from '@/lib/content';
+import { isCaseStudy } from '@/lib/content-types';
+import { CaseStudyView } from '@/components/learn/CaseStudyView';
+import { InnovationCardView } from '@/components/learn/InnovationCardView';
 
 export default async function LearnDetailPage({
   params,
@@ -8,22 +11,29 @@ export default async function LearnDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: item } = await supabase.from('content').select('*').eq('id', id).single();
+  const item = resolveContent(decodeURIComponent(id));
   if (!item) notFound();
 
+  const stationLabel = item.stationNumber === 1 ? 'Pos 1 · Empathize' : 'Pos 3 · Ideate';
+  const typeLabel = isCaseStudy(item) ? 'Case Study' : 'Innovation Card';
+
   return (
-    <main className="p-4">
-      <div className="win98-dialog">
-        <div className="win98-titlebar">
-          <span>{item.company}</span>
-          <span>×</span>
-        </div>
-        <Card className="border-0 rounded-none space-y-3">
-          <h1 className="font-display text-sm">{item.title}</h1>
-          <p className="font-body text-sm text-text-secondary whitespace-pre-wrap">{item.body}</p>
-        </Card>
+    <main className="space-y-4 p-4">
+      <Link
+        href="/learn"
+        className="font-display text-[10px] text-accent-green underline"
+      >
+        ← All materials
+      </Link>
+
+      <div>
+        <p className="font-display text-[10px] text-text-secondary">
+          {typeLabel} · {stationLabel}
+        </p>
+        <h1 className="font-display text-lg">{item.company}</h1>
       </div>
+
+      {isCaseStudy(item) ? <CaseStudyView item={item} /> : <InnovationCardView item={item} />}
     </main>
   );
 }

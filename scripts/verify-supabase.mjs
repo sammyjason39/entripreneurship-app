@@ -23,7 +23,7 @@ async function run() {
   checks.push({ name: 'stations', ok: !stErr && (stations?.length ?? 0) === 7, detail: stErr?.message ?? `${stations?.length} rows` });
 
   const { data: content, error: cErr } = await admin.from('content').select('id').limit(10);
-  checks.push({ name: 'content_seed', ok: !cErr && (content?.length ?? 0) >= 5, detail: cErr?.message ?? `${content?.length} rows` });
+  checks.push({ name: 'content_seed', ok: !cErr && (content?.length ?? 0) >= 10, detail: cErr?.message ?? `${content?.length} rows` });
 
   const { data: buckets, error: bErr } = await admin.storage.listBuckets();
   const hasSubmissions = buckets?.some((b) => b.name === 'submissions');

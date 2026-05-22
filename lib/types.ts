@@ -180,6 +180,7 @@ export interface ContentItem {
   image_url: string | null;
   station_number: number | null;
   sort_order: number;
+  metadata?: Record<string, unknown>;
 }
 
 export interface QrPayload {

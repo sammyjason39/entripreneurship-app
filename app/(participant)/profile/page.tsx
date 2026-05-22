@@ -146,7 +146,7 @@ export default function ProfilePage() {
 
       <div className="grid gap-2">
         <Link href="/map"><Button variant="outline" className="w-full">MAP</Button></Link>
-        <Link href="/learn"><Button variant="outline" className="w-full">CASE STUDIES</Button></Link>
+        <Link href="/learn"><Button variant="outline" className="w-full">CASE STUDIES & CARDS</Button></Link>
         <Link href="/prizes"><Button variant="outline" className="w-full">PRIZES</Button></Link>
         <Link href="/leaderboard"><Button variant="outline" className="w-full">LEADERBOARD</Button></Link>
       </div>
