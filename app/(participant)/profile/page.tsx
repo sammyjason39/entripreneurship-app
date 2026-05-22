@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PINInput } from '@/components/app/PINInput';
+import { TransactionPinHelp } from '@/components/app/TransactionPinHelp';
 import { TEAM_ROLES } from '@/lib/types';
 import { profileNameFromJoin, teamFromJoin } from '@/lib/supabase-helpers';
 
@@ -22,6 +23,7 @@ export default function ProfilePage() {
   const [showPinChange, setShowPinChange] = useState(false);
   const [pinStep, setPinStep] = useState<'enter' | 'confirm'>('enter');
   const [firstPin, setFirstPin] = useState('');
+  const [pinError, setPinError] = useState('');
 
   useEffect(() => {
     const load = async () => {
@@ -62,16 +64,31 @@ export default function ProfilePage() {
     if (pinStep === 'enter') {
       setFirstPin(pin);
       setPinStep('confirm');
+      setPinError('');
       return;
     }
-    if (pin !== firstPin) return;
-    await fetch('/api/onboarding/pin', {
+    if (pin !== firstPin) {
+      setPinError('PINs do not match. Try again.');
+      setPinStep('enter');
+      setFirstPin('');
+      return;
+    }
+    const res = await fetch('/api/onboarding/pin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pin }),
     });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      setPinError((d as { error?: string }).error ?? 'Could not save PIN');
+      setPinStep('enter');
+      setFirstPin('');
+      return;
+    }
     setShowPinChange(false);
     setPinStep('enter');
+    setFirstPin('');
+    setPinError('');
   };
 
   const logout = async () => {
@@ -132,8 +149,17 @@ export default function ProfilePage() {
       </div>
 
       {showPinChange ? (
-        <Card>
-          <PINInput onComplete={changePin} />
+        <Card className="space-y-4">
+          <TransactionPinHelp />
+          <p className="font-display text-xs text-text-secondary">
+            {pinStep === 'enter' ? 'NEW PIN' : 'CONFIRM NEW PIN'}
+          </p>
+          <PINInput
+            key={pinStep}
+            resetKey={pinStep}
+            onComplete={changePin}
+            error={pinError}
+          />
         </Card>
       ) : (
         <Button variant="outline" className="w-full" onClick={() => setShowPinChange(true)}>

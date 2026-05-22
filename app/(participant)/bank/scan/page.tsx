@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { parseQrData } from '@/lib/utils';
+import { TRANSACTION_PIN_VERIFY_SHORT } from '@/lib/copy';
 
 type ScanStep = 'scan' | 'confirm' | 'pin';
 
@@ -24,6 +25,7 @@ export default function BankScanPage() {
   const [amount, setAmount] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [pinReset, setPinReset] = useState(0);
 
   const handleScan = async (raw: string) => {
     const parsed = parseQrData(raw);
@@ -62,6 +64,7 @@ export default function BankScanPage() {
     const data = await res.json();
     if (!res.ok) {
       setError(data.error ?? 'Failed');
+      setPinReset((n) => n + 1);
       return;
     }
     router.push('/bank');
@@ -111,9 +114,10 @@ export default function BankScanPage() {
 
   return (
     <main className="p-4">
-      <Card>
-        <p className="font-display text-sm mb-4">ENTER PIN</p>
-        <PINInput onComplete={complete} error={error} />
+      <Card className="space-y-4">
+        <p className="font-display text-sm">AUTHORIZE PAYMENT</p>
+        <p className="font-body text-sm text-text-secondary">{TRANSACTION_PIN_VERIFY_SHORT}</p>
+        <PINInput resetKey={pinReset} onComplete={complete} error={error} />
       </Card>
     </main>
   );

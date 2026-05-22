@@ -7,10 +7,12 @@ import { buildSessionQrPayload } from '@/lib/qr';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { QR_SESSION_MINUTES } from '@/lib/types';
+import { TRANSACTION_PIN_VERIFY_SHORT } from '@/lib/copy';
 
 export default function BankQRPage() {
   const [verified, setVerified] = useState(false);
   const [error, setError] = useState('');
+  const [pinReset, setPinReset] = useState(0);
   const [qrValue, setQrValue] = useState('');
   const [expiresAt, setExpiresAt] = useState<Date | null>(null);
   const [remaining, setRemaining] = useState(0);
@@ -47,10 +49,13 @@ export default function BankQRPage() {
   if (!verified) {
     return (
       <main className="p-4 space-y-4">
-        <Card>
-          <p className="font-display text-sm mb-4">ENTER PIN TO SHOW QR</p>
+        <Card className="space-y-4">
+          <p className="font-display text-sm">ENTER PIN TO SHOW QR</p>
+          <p className="font-body text-sm text-text-secondary">{TRANSACTION_PIN_VERIFY_SHORT}</p>
           <PINInput
+            resetKey={pinReset}
             onComplete={async (pin) => {
+              setError('');
               const v = await fetch('/api/verify-pin', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -59,6 +64,7 @@ export default function BankQRPage() {
               const d = await v.json();
               if (!d.valid) {
                 setError(d.error ?? 'Incorrect PIN');
+                setPinReset((n) => n + 1);
                 return;
               }
               await createSession(pin);

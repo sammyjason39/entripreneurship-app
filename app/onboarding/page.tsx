@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
 import { PINInput } from '@/components/app/PINInput';
+import { OnboardingShell } from '@/components/app/OnboardingShell';
+import { TransactionPinHelp } from '@/components/app/TransactionPinHelp';
 import { TEAM_ROLES } from '@/lib/types';
 import { profileNameFromJoin, teamNameFromJoin } from '@/lib/supabase-helpers';
 
@@ -15,7 +16,8 @@ type Step = 1 | 2 | 3;
 export default function OnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState<Step>(1);
-  const [confirmPin, setConfirmPin] = useState('');
+  const [pinPhase, setPinPhase] = useState<'enter' | 'confirm'>('enter');
+  const [firstPin, setFirstPin] = useState('');
   const [pinError, setPinError] = useState('');
   const [mode, setMode] = useState<'create' | 'join' | null>(null);
   const [teamName, setTeamName] = useState('');
@@ -27,30 +29,45 @@ export default function OnboardingPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    fetch('/api/onboarding/ensure-profile', { method: 'POST' }).catch(() => {});
+  }, []);
+
   const savePin = async (entered: string) => {
-    if (!confirmPin) {
-      setConfirmPin(entered);
+    if (pinPhase === 'enter') {
+      setFirstPin(entered);
+      setPinPhase('confirm');
       setPinError('');
       return;
     }
-    if (entered !== confirmPin) {
-      setPinError('PINs do not match');
-      setConfirmPin('');
+
+    if (entered !== firstPin) {
+      setPinError('PINs do not match. Please enter your PIN again.');
+      setPinPhase('enter');
+      setFirstPin('');
       return;
     }
+
     setLoading(true);
+    setPinError('');
+
+    await fetch('/api/onboarding/ensure-profile', { method: 'POST' });
+
     const res = await fetch('/api/onboarding/pin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pin: entered }),
     });
+    const data = await res.json().catch(() => ({}));
     setLoading(false);
+
     if (!res.ok) {
-      const d = await res.json();
-      setPinError(d.error ?? 'Failed');
-      setConfirmPin('');
+      setPinError((data as { error?: string }).error ?? 'Could not save PIN. Try again.');
+      setPinPhase('enter');
+      setFirstPin('');
       return;
     }
+
     setStep(2);
   };
 
@@ -154,101 +171,159 @@ export default function OnboardingPage() {
   };
 
   return (
-    <main className="min-h-dvh p-6 pb-12">
-      <p className="font-display text-sm text-accent-green">ONBOARDING — STEP {step}/3</p>
-
+    <OnboardingShell step={step}>
       {step === 1 && (
-        <Card className="mt-6 space-y-4">
-          <p className="font-body text-sm text-text-secondary">
-            Set your 6-digit transaction PIN. Don&apos;t share it.
+        <>
+          <TransactionPinHelp />
+          <p className="font-display text-[10px] text-text-secondary">
+            {pinPhase === 'enter' ? 'CREATE YOUR 6-DIGIT PIN' : 'ENTER THE SAME PIN AGAIN'}
           </p>
-          <p className="font-display text-[10px]">
-            {confirmPin ? 'CONFIRM PIN' : 'ENTER PIN'}
-          </p>
-          <PINInput onComplete={savePin} error={pinError} disabled={loading} />
-        </Card>
+          <PINInput
+            key={pinPhase}
+            resetKey={pinPhase}
+            onComplete={savePin}
+            error={pinError}
+            disabled={loading}
+          />
+          {loading && (
+            <p className="animate-blink text-center font-display text-xs text-accent-green">
+              SAVING PIN...
+            </p>
+          )}
+          {pinPhase === 'confirm' && !loading && (
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full"
+              onClick={() => {
+                setPinPhase('enter');
+                setFirstPin('');
+                setPinError('');
+              }}
+            >
+              START OVER
+            </Button>
+          )}
+        </>
       )}
 
       {step === 2 && (
-        <Card className="mt-6 space-y-4">
+        <>
+          <p className="font-body text-sm text-text-secondary leading-relaxed">
+            Form your startup team for the event. CEOs create a team and share a join code; everyone
+            else joins with that code and picks an open role.
+          </p>
+
           {!mode && (
-            <>
+            <div className="flex flex-col gap-3">
               <Button className="w-full" onClick={() => setMode('create')}>
                 CREATE A TEAM (I AM CEO)
               </Button>
               <Button variant="outline" className="w-full" onClick={() => setMode('join')}>
                 JOIN A TEAM
               </Button>
-            </>
+            </div>
           )}
+
           {mode === 'create' && (
-            <>
-              <Input
-                placeholder="Team name"
-                value={teamName}
-                onChange={(e) => setTeamName(e.target.value)}
-              />
-              <Button className="w-full" onClick={createTeam} disabled={loading}>
-                CREATE TEAM
+            <div className="flex flex-col gap-3">
+              <div>
+                <label className="font-display text-[10px] text-text-secondary">TEAM NAME</label>
+                <Input
+                  placeholder="e.g. Pixel Ventures"
+                  value={teamName}
+                  onChange={(e) => setTeamName(e.target.value)}
+                />
+              </div>
+              <Button
+                className="w-full"
+                onClick={createTeam}
+                disabled={loading || !teamName.trim()}
+              >
+                {loading ? 'CREATING...' : 'CREATE TEAM'}
               </Button>
-            </>
+              <Button type="button" variant="ghost" className="w-full" onClick={() => setMode(null)}>
+                BACK
+              </Button>
+            </div>
           )}
+
           {mode === 'join' && (
-            <>
-              <Input
-                placeholder="6-char join code"
-                value={joinCode}
-                onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-                maxLength={6}
-              />
-              <Button variant="outline" onClick={lookupJoinCode}>
+            <div className="flex flex-col gap-3">
+              <div>
+                <label className="font-display text-[10px] text-text-secondary">JOIN CODE</label>
+                <Input
+                  placeholder="6 characters"
+                  value={joinCode}
+                  onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                  maxLength={6}
+                />
+              </div>
+              <Button variant="outline" className="w-full" onClick={lookupJoinCode}>
                 FIND TEAM
               </Button>
+              {teamPreview && (
+                <p className="font-body text-sm text-accent-green">
+                  Team: <span className="text-text-primary">{teamPreview.name}</span>
+                </p>
+              )}
               {availableRoles.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {availableRoles.map((r) => (
-                    <Button
-                      key={r}
-                      size="sm"
-                      variant={selectedRole === r ? 'default' : 'outline'}
-                      onClick={() => setSelectedRole(r)}
-                    >
-                      {r}
-                    </Button>
-                  ))}
+                <div>
+                  <p className="mb-2 font-display text-[10px] text-text-secondary">PICK YOUR ROLE</p>
+                  <div className="flex flex-wrap gap-2">
+                    {availableRoles.map((r) => (
+                      <Button
+                        key={r}
+                        size="sm"
+                        variant={selectedRole === r ? 'default' : 'outline'}
+                        onClick={() => setSelectedRole(r)}
+                      >
+                        {r}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               )}
               <Button className="w-full" onClick={joinTeam} disabled={!selectedRole || loading}>
-                JOIN TEAM
+                {loading ? 'JOINING...' : 'JOIN TEAM'}
               </Button>
-            </>
+              <Button type="button" variant="ghost" className="w-full" onClick={() => setMode(null)}>
+                BACK
+              </Button>
+            </div>
           )}
-          {error && <p className="text-accent-red text-sm">{error}</p>}
-        </Card>
+
+          {error && <p className="text-sm text-accent-red">{error}</p>}
+        </>
       )}
 
       {step === 3 && (
-        <Card className="mt-6 space-y-4">
+        <>
           {joinCodeResult && (
-            <p className="font-display text-xs text-accent-yellow">
-              SHARE CODE: {joinCodeResult}
-            </p>
+            <div className="rounded-card border border-accent-yellow/40 bg-bg-tertiary/50 p-3">
+              <p className="font-display text-[10px] text-accent-yellow">SHARE WITH YOUR TEAM</p>
+              <p className="mt-1 font-display text-lg tracking-widest text-text-primary">
+                {joinCodeResult}
+              </p>
+            </div>
           )}
           {teamPreview && (
             <>
-              <p className="font-display text-lg">{teamPreview.name}</p>
-              <ul className="font-body text-sm space-y-1">
+              <p className="font-display text-lg text-accent-green">{teamPreview.name}</p>
+              <ul className="space-y-1 font-body text-sm">
                 {teamPreview.members.map((m, i) => (
-                  <li key={i}>{m}</li>
+                  <li key={i} className="text-text-secondary">
+                    {m}
+                  </li>
                 ))}
               </ul>
             </>
           )}
           <Button className="w-full" onClick={finish} disabled={loading}>
-            LET&apos;S GO!
+            {loading ? 'LOADING...' : "LET'S GO!"}
           </Button>
-        </Card>
+        </>
       )}
-    </main>
+    </OnboardingShell>
   );
 }

@@ -29,10 +29,12 @@ export async function updateSession(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
   const isAuthRoute = path.startsWith('/auth');
+  const isApiRoute = path.startsWith('/api/');
   const isPublicApi =
     path.startsWith('/api/health') || path.startsWith('/_next') || path.startsWith('/icons');
 
-  if (!user && !isAuthRoute && !isPublicApi && path !== '/offline') {
+  // API routes return JSON 401 from route handlers — never redirect to login HTML
+  if (!user && !isAuthRoute && !isApiRoute && !isPublicApi && path !== '/offline') {
     const hasStatic =
       path.endsWith('.png') ||
       path.endsWith('.json') ||
@@ -46,7 +48,7 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  if (user && isAuthRoute) {
+  if (user && isAuthRoute && path !== '/auth/callback') {
     const url = request.nextUrl.clone();
     url.pathname = '/';
     return NextResponse.redirect(url);

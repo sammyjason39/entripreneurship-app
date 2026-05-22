@@ -14,7 +14,10 @@ Mobile-first Progressive Web App for the BINUS EnTripreneurship event (May 23, 2
 ### 1. Supabase setup
 
 1. Create a project at [supabase.com](https://supabase.com)
-2. Run SQL from `supabase/migrations/001_initial_schema.sql` in the SQL Editor
+2. **Authentication → URL Configuration** — add redirect URLs:
+   - `http://localhost:3000/auth/callback`
+   - `https://app.entripreneurship.vercel.app/auth/callback` (production)
+3. Run SQL from `supabase/migrations/001_initial_schema.sql` in the SQL Editor
 3. Create Storage bucket `submissions` (public read for crew review)
 4. Enable Realtime on `submissions`, `teams`, `location_pings`
 5. Create crew users in Auth, then set `profiles.app_role = 'crew'` in Table Editor
@@ -42,6 +45,14 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000)
+
+**Styles look broken (plain white buttons, huge logos)?** The Tailwind CSS bundle failed to load — usually a stale `.next` cache. Stop the dev server, then:
+
+```bash
+rm -rf .next && npm run dev
+```
+
+Hard-refresh the browser (`Cmd+Shift+R`). In DevTools → Network, `/_next/static/css/app/layout.css` should return **200**.
 
 ### 4. Test
 
@@ -98,7 +109,7 @@ Use Node 20+, enable HTTPS, and set `NEXT_PUBLIC_APP_URL` to your public URL.
 
 - [ ] Run migration + seed stations/content
 - [ ] Upload real map to `public/map/dago-map.svg` (or `.png`)
-- [ ] Replace sponsor logos in `public/brands/`
+- [x] Sponsor logos in `public/brands/` (sourced from official sites)
 - [ ] Create crew accounts (`app_role = crew`)
 - [ ] Test: register → team → submit → crew approve → EnCoins
 - [ ] Test QR: crew reward + participant transfer

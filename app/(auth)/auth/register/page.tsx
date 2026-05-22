@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
+import { friendlyAuthError } from '@/lib/auth-messages';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -15,25 +16,95 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [awaitingConfirm, setAwaitingConfirm] = useState(false);
+  const [resendMsg, setResendMsg] = useState('');
+
+  const handleResend = async () => {
+    setResendMsg('');
+    const supabase = createClient();
+    const { error: resendError } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding`,
+      },
+    });
+    setResendMsg(resendError ? resendError.message : 'Confirmation email sent again. Check your inbox.');
+  };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setAwaitingConfirm(false);
     const supabase = createClient();
-    const { error: authError } = await supabase.auth.signUp({
+    const redirectTo = `${window.location.origin}/auth/callback?next=/onboarding`;
+
+    const { data, error: authError } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } },
+      options: {
+        data: { full_name: fullName },
+        emailRedirectTo: redirectTo,
+      },
     });
-    setLoading(false);
     if (authError) {
-      setError(authError.message);
+      setLoading(false);
+      setError(friendlyAuthError(authError.message));
       return;
     }
+
+    // Email confirmation ON → no session until user clicks link in email
+    if (!data.session) {
+      setLoading(false);
+      setAwaitingConfirm(true);
+      return;
+    }
+
+    if (data.user) {
+      const { error: profileError } = await supabase.from('profiles').upsert(
+        {
+          id: data.user.id,
+          full_name: fullName.trim(),
+          app_role: 'participant',
+        },
+        { onConflict: 'id' }
+      );
+      if (profileError) {
+        setLoading(false);
+        setError(profileError.message);
+        return;
+      }
+    }
+    setLoading(false);
     router.push('/onboarding');
     router.refresh();
   };
+
+  if (awaitingConfirm) {
+    return (
+      <main className="flex min-h-dvh flex-col justify-center p-6">
+        <Card className="space-y-4 border-accent-green/50">
+          <p className="font-display text-sm text-accent-green">CHECK YOUR EMAIL</p>
+          <p className="font-body text-sm text-text-secondary">
+            We sent a confirmation link to <strong className="text-text-primary">{email}</strong>.
+            Open it on this device, then log in to continue onboarding.
+          </p>
+          <Button type="button" variant="outline" className="w-full" onClick={handleResend}>
+            RESEND EMAIL
+          </Button>
+          {resendMsg && (
+            <p className={`text-sm ${resendMsg.includes('sent') ? 'text-accent-green' : 'text-accent-red'}`}>
+              {resendMsg}
+            </p>
+          )}
+          <Link href="/auth/login" className="block text-center font-display text-xs text-accent-blue">
+            GO TO LOGIN →
+          </Link>
+        </Card>
+      </main>
+    );
+  }
 
   return (
     <main className="flex min-h-dvh flex-col justify-center p-6">
