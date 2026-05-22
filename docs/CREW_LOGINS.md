@@ -25,6 +25,16 @@ Crew accounts **cannot** open `/admin`. Admins use the jury console, not the cre
 | Admin | `EntripAdmin2026!` |
 | All crew accounts | `EntripCrew2026!` |
 
+## Crew transaction PIN (EnCoin pay / deduct)
+
+After `npm run db:seed-crew`, all **crew** accounts use this **6-digit PIN** when confirming rewards or deductions (not the participant’s PIN):
+
+| | Value |
+|--|--------|
+| Crew transaction PIN | `888888` |
+
+Change it in production if this doc is public. Re-run `db:seed-crew` to reset PINs on seeded accounts.
+
 ## Accounts
 
 | Email | Name | Access |

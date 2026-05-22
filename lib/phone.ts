@@ -1,6 +1,10 @@
-/** Strip WhatsApp JID suffixes (`628...@s.whatsapp.net`) before normalization. */
+/** Strip WhatsApp JID suffixes before normalization. */
 export function sanitizeWhatsAppSender(input: string): string {
-  return input.trim().replace(/@s\.whatsapp\.net$/i, '').replace(/@c\.us$/i, '');
+  return input
+    .trim()
+    .replace(/@s\.whatsapp\.net$/i, '')
+    .replace(/@c\.us$/i, '')
+    .replace(/@lid$/i, '');
 }
 
 /** Normalize Indonesian WhatsApp numbers to E.164 without + (e.g. 628978073890). */

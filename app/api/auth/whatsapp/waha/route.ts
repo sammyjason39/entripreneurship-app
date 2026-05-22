@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { processInboundWhatsAppLogin } from '@/lib/whatsapp-inbound';
-import { sanitizeWhatsAppSender } from '@/lib/phone';
 import {
   buildLoginFailureReply,
   buildLoginHintReply,
@@ -31,7 +30,7 @@ export async function POST(request: Request) {
     }
 
     const result = await processInboundWhatsAppLogin({
-      phone: incoming.phoneNormalized ?? sanitizeWhatsAppSender(incoming.from),
+      phone: incoming.phoneNormalized ?? '',
       message: incoming.body,
     });
 

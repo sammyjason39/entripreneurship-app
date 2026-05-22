@@ -215,17 +215,25 @@ export function buildLoginFailureReply(error?: string): string {
   }
   if (error === 'expired') {
     return (
-      `❌ This code has expired (10 minutes).\n\n` +
+      `❌ This code has expired.\n\n` +
       `Open https://entripreneurship.fun/auth/login, enter your number again, ` +
-      `and send the *new* message shown on screen.`
+      `and send the *new* message shown on screen (do not reuse an old code).`
+    );
+  }
+  if (error === 'already_used') {
+    return (
+      `✅ This code was already accepted.\n\n` +
+      `Go back to the browser login page and tap *I sent the message — check now*, ` +
+      `or start again to get a fresh code and link.`
     );
   }
   return (
     `❌ That login code didn't work.\n\n` +
     `1. Open https://entripreneurship.fun/auth/login\n` +
-    `2. Enter your WhatsApp number (same as on the registration form)\n` +
-    `3. Send the *exact* new message shown (with the 6-character code)\n\n` +
-    `Do not reuse an old code. Codes expire after 10 minutes.`
+    `2. Enter the *same* WhatsApp number as on the registration form\n` +
+    `3. Copy the *new* message from the screen (do not retype from an old chat)\n` +
+    `4. Send it here immediately — codes expire in 30 minutes\n\n` +
+    `Your number on file may be 0877-2858-9845 (not the longer typo variant).`
   );
 }
 

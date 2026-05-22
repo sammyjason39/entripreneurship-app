@@ -13,10 +13,13 @@ import { resolve } from 'path';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import ws from 'ws';
 import { buildAssignmentLabel } from '../lib/admin';
+import { hashPin } from '../lib/pin';
 import type { CrewAssignmentKind } from '../lib/types';
 
 const CREW_PASSWORD = 'EntripCrew2026!';
 const ADMIN_PASSWORD = 'EntripAdmin2026!';
+/** Shared crew transaction PIN for bank desk / pay tools (documented in docs/CREW_LOGINS.md) */
+export const CREW_TRANSACTION_PIN = '888888';
 
 type SeedAccount = {
   email: string;
@@ -141,12 +144,16 @@ async function ensureAccount(
     console.log(`Updated password ${email}`);
   }
 
+  const pin_hash =
+    account.appRole === 'crew' ? await hashPin(CREW_TRANSACTION_PIN) : null;
+
   const { error: profileError } = await service.from('profiles').upsert(
     {
       id: userId,
       full_name: account.fullName,
       app_role: account.appRole,
       onboarding_complete: true,
+      ...(pin_hash ? { pin_hash } : {}),
     },
     { onConflict: 'id' }
   );

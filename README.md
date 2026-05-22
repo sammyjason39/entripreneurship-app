@@ -97,6 +97,15 @@ pm2 save
 
 Use Node 20+, enable HTTPS, and set `NEXT_PUBLIC_APP_URL` to your public URL.
 
+## Documentation (end-to-end)
+
+| Audience | Guide |
+|----------|--------|
+| Participants | [docs/GUIDE_PARTICIPANT.md](docs/GUIDE_PARTICIPANT.md) |
+| Crew | [docs/GUIDE_CREW.md](docs/GUIDE_CREW.md) |
+| Admin / jury | [docs/GUIDE_ADMIN.md](docs/GUIDE_ADMIN.md) |
+| Index + testing | [docs/README.md](docs/README.md), [docs/TESTING.md](docs/TESTING.md) |
+
 ## Routes
 
 | Path | Role |

@@ -237,14 +237,34 @@ function LoginForm() {
         </div>
         <Card className="border-0 rounded-none bg-bg-secondary space-y-4">
           {fullName && (
-            <p className="font-body text-sm text-text-secondary">
-              Hi <strong className="text-text-primary">{fullName}</strong> — open WhatsApp and send this
-              exact message to <strong className="text-text-primary">Connext</strong>:
-            </p>
+            <div className="space-y-2">
+              <p className="font-body text-sm text-text-secondary">
+                Hi <strong className="text-text-primary">{fullName}</strong> — open WhatsApp and send
+                this exact message to <strong className="text-text-primary">Connext</strong>:
+              </p>
+              <ol className="list-decimal space-y-1 pl-4 font-body text-xs text-text-secondary">
+                <li>
+                  Tap <strong className="text-text-primary">OPEN WHATSAPP</strong> below (or open your
+                  chat with Connext).
+                </li>
+                <li>
+                  Send the message in the blue box <strong className="text-text-primary">exactly as
+                  shown</strong> — do not edit the text.
+                </li>
+                <li>Return to this tab and wait — we sign you in automatically.</li>
+              </ol>
+            </div>
           )}
-          <div className="rounded border-2 border-border-primary bg-bg-primary p-4 text-center">
-            <p className="font-display text-lg tracking-widest text-accent-green">{message}</p>
-            <p className="mt-2 font-display text-[10px] text-text-secondary">CODE: {code}</p>
+          <div className="rounded border-2 border-border-primary bg-bg-primary p-3 sm:p-4">
+            <p className="mb-2 text-center font-display text-[10px] uppercase tracking-widest text-text-on-bg-muted">
+              Message to send
+            </p>
+            <p className="break-words text-center font-display text-sm leading-snug tracking-wide text-accent-green [overflow-wrap:anywhere] sm:text-base">
+              {message}
+            </p>
+            <p className="mt-3 text-center font-display text-[10px] uppercase tracking-widest text-text-on-bg-muted">
+              CODE: {code}
+            </p>
           </div>
           {waUrl ? (
             <a
@@ -260,13 +280,13 @@ function LoginForm() {
               WhatsApp bot number not configured. Contact the organizer.
             </p>
           )}
-          <p className="font-body text-xs text-text-secondary text-center animate-blink">
-            After you send the message in WhatsApp, return to this tab. We check every few seconds,
-            or tap the button below.
+          <p className="text-center font-body text-xs text-text-secondary animate-blink">
+            Waiting for your message… keep this tab open. We check every few seconds, or tap the
+            button below when you are done.
           </p>
-          <p className="font-body text-xs text-text-secondary text-center">
-            Connext can also send you a <strong className="text-text-primary">login link</strong> in
-            WhatsApp — open that link if the browser does not move on its own.
+          <p className="text-center font-body text-xs text-text-secondary">
+            If nothing happens, check WhatsApp — Connext may reply with a{' '}
+            <strong className="text-text-primary">login link</strong> you can tap instead.
           </p>
           {error && <p className="text-sm text-accent-red">{error}</p>}
           <Button type="button" className="w-full" disabled={checking} onClick={checkNow}>
@@ -333,7 +353,7 @@ const ENTRIP_LOGO_SRC = '/brands/logo-entrip.png';
 function LoginWelcome() {
   return (
     <div className="mb-8 text-center">
-      <p className="font-display text-[10px] uppercase tracking-[0.35em] text-text-secondary">
+      <p className="font-display text-[10px] uppercase tracking-[0.35em] text-text-on-bg-muted">
         Welcome to
       </p>
       {/* eslint-disable-next-line @next/next/no-img-element */}

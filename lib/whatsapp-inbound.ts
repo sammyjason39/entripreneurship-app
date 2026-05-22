@@ -28,7 +28,8 @@ export function extractInboundLogin(body: {
   }
 
   phone = sanitizeWhatsAppSender(phone);
-  const normalized = normalizeWhatsAppPhone(phone);
+  // @lid JIDs are not phone numbers — rely on code-only matching in confirmWhatsAppLogin
+  const normalized = phone.includes('@') ? null : normalizeWhatsAppPhone(phone);
   const codeNorm = code.replace(/\s/g, '').toUpperCase();
 
   return { normalized, code: codeNorm, message };

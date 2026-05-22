@@ -3,7 +3,7 @@ import { normalizeWhatsAppPhone } from '@/lib/phone';
 import { randomBytes } from 'crypto';
 
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const CHALLENGE_TTL_MINUTES = 10;
+const CHALLENGE_TTL_MINUTES = 30;
 
 export function generateLoginCode(): string {
   let code = '';
@@ -21,7 +21,11 @@ export function buildLoginMessage(code: string): string {
 }
 
 export function parseCodeFromMessage(message: string): string | null {
-  const text = message.trim();
+  const text = message
+    .trim()
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .replace(/[（(]/g, '(')
+    .replace(/[）)]/g, ')');
   const connext = text.match(/entripreneurship\.fun\s*\(([A-Za-z0-9]{6})\)/i);
   if (connext) return connext[1]!.toUpperCase();
   const legacy = text.match(/log\s+me\s+in\s+([A-Za-z0-9]{6})/i);
@@ -197,6 +201,23 @@ export async function confirmWhatsAppLogin(params: {
   }
 
   if (!challenge) {
+    const { data: stale } = await service
+      .from('whatsapp_login_challenges')
+      .select('status, expires_at')
+      .eq('code', code)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (stale?.status === 'confirmed' || stale?.status === 'consumed') {
+      return { ok: false as const, error: 'already_used' };
+    }
+    if (
+      stale?.status === 'expired' ||
+      (stale?.expires_at && new Date(stale.expires_at).getTime() < Date.now())
+    ) {
+      return { ok: false as const, error: 'expired' };
+    }
     return { ok: false as const, error: 'invalid_or_expired' };
   }
 
