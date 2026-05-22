@@ -1,10 +1,13 @@
 # Deployment guide — Ubuntu VPS
 
+Production domain: **https://entripreneurship.fun** (Traefik + Let’s Encrypt via Coolify proxy).
+
 ## Prerequisites
 
 - Ubuntu 22.04+ VPS
 - Node.js 20 LTS (`curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt install -y nodejs`)
-- Nginx + Certbot for HTTPS
+- Ports **80/443** handled by Coolify **Traefik** (`coolify-proxy`) — not standalone Nginx
+- DNS **A** records for `entripreneurship.fun` and `www` → your VPS IP
 - Supabase project configured (see README)
 
 ## Steps
@@ -30,45 +33,20 @@ npm test
 
 ### 3. Process manager (PM2)
 
+Port **3002** is used because Docker already binds **3000**.
+
 ```bash
 sudo npm install -g pm2
-pm2 start npm --name entrip -- start
+PORT=3002 pm2 start npm --name entrip -- start
 pm2 startup
 pm2 save
 ```
 
-### 4. Nginx
+### 4. Traefik + HTTPS (Let’s Encrypt)
 
-```nginx
-server {
-    listen 80;
-    server_name app.entripreneurship.yourdomain.com;
-    return 301 https://$host$request_uri;
-}
+Copy `deploy/traefik/entripreneurship.yaml` to `/data/coolify/proxy/dynamic/` on the VPS. See `deploy/traefik/README.md`.
 
-server {
-    listen 443 ssl http2;
-    server_name app.entripreneurship.yourdomain.com;
-
-    ssl_certificate /etc/letsencrypt/live/app.entripreneurship.yourdomain.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/app.entripreneurship.yourdomain.com/privkey.pem;
-
-    location / {
-        proxy_pass http://127.0.0.1:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
-
-```bash
-sudo certbot --nginx -d app.entripreneurship.yourdomain.com
-sudo nginx -t && sudo systemctl reload nginx
-```
+Traefik terminates TLS and proxies to `http://host.docker.internal:3002`. HTTP redirects to HTTPS automatically.
 
 ### 5. Updates on event day
 
@@ -77,7 +55,7 @@ cd /var/www/entripreneurship-app
 git pull
 npm ci
 npm run build
-pm2 restart entrip
+PORT=3002 pm2 restart entrip
 ```
 
 ## Scaling (~100 users)

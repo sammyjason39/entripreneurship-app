@@ -16,7 +16,7 @@ Mobile-first Progressive Web App for the BINUS EnTripreneurship event (May 23, 2
 1. Create a project at [supabase.com](https://supabase.com)
 2. **Authentication → URL Configuration** — add redirect URLs:
    - `http://localhost:3000/auth/callback`
-   - `https://app.entripreneurship.vercel.app/auth/callback` (production)
+   - `https://entripreneurship.fun/auth/callback` (production)
 3. Run SQL from `supabase/migrations/001_initial_schema.sql` in the SQL Editor
 3. Create Storage bucket `submissions` (public read for crew review)
 4. Enable Realtime on `submissions`, `teams`, `location_pings`

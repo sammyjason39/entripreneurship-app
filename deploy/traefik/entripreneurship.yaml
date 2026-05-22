@@ -1,0 +1,24 @@
+# Coolify Traefik dynamic config — copy to /data/coolify/proxy/dynamic/ on the VPS.
+# Routes entripreneurship.fun → PM2 Next.js on host port 3002 (Let's Encrypt via Coolify proxy).
+
+http:
+  routers:
+    entripreneurship-http:
+      entryPoints:
+        - http
+      rule: Host(`entripreneurship.fun`) || Host(`www.entripreneurship.fun`)
+      middlewares:
+        - redirect-to-https
+      service: entripreneurship
+    entripreneurship-https:
+      entryPoints:
+        - https
+      rule: Host(`entripreneurship.fun`) || Host(`www.entripreneurship.fun`)
+      service: entripreneurship
+      tls:
+        certresolver: letsencrypt
+  services:
+    entripreneurship:
+      loadBalancer:
+        servers:
+          - url: http://host.docker.internal:3002
