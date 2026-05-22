@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { consumeChallengeForSession } from '@/lib/whatsapp-auth';
 
+export const dynamic = 'force-dynamic';
+
 /** Browser redirect after WhatsApp confirmed — exchanges challenge for Supabase magic link. */
 export async function GET(request: Request) {
   try {
