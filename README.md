@@ -117,6 +117,7 @@ Use Node 20+, enable HTTPS, and set `NEXT_PUBLIC_APP_URL` to your public URL.
 - [ ] Use `/admin/crew` to create crew logins and assignments
 - [ ] Run `005_whatsapp_login.sql` + `npm run db:import-registrations` (see [docs/WHATSAPP_LOGIN.md](docs/WHATSAPP_LOGIN.md))
 - [ ] Configure n8n webhook + `WHATSAPP_BOT_NUMBER` / `WHATSAPP_WEBHOOK_API_KEY`
+- [ ] Run `npm run db:seed-crew` — premade crew logins ([docs/CREW_LOGINS.md](docs/CREW_LOGINS.md))
 - [ ] Test: WhatsApp login → onboarding → team → submit → crew approve → EnCoins
 - [ ] Test QR: crew reward + participant transfer
 
