@@ -1,72 +1,135 @@
 'use client';
 
-import { Suspense, useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { Suspense, useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { SponsorRow } from '@/components/app/SponsorRow';
-import { friendlyAuthError, isEmailNotConfirmedError } from '@/lib/auth-messages';
+
+type Step = 'phone' | 'whatsapp';
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [step, setStep] = useState<Step>('phone');
+  const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [needsConfirm, setNeedsConfirm] = useState(false);
-  const [resendMsg, setResendMsg] = useState('');
+  const [challengeId, setChallengeId] = useState('');
+  const [code, setCode] = useState('');
+  const [message, setMessage] = useState('');
+  const [waUrl, setWaUrl] = useState<string | null>(null);
+  const [fullName, setFullName] = useState('');
+  const [polling, setPolling] = useState(false);
 
   useEffect(() => {
-    if (searchParams.get('error') === 'confirmation_failed') {
-      setError('Email confirmation failed or expired. Try logging in or resend the email.');
-    }
-    if (searchParams.get('confirmed') === '1') {
-      setResendMsg('Email confirmed! You can log in now.');
+    const err = searchParams.get('error');
+    if (err === 'whatsapp_not_ready') {
+      setError('WhatsApp login not confirmed yet. Send the message and try again.');
+    } else if (err === 'whatsapp_finish_failed') {
+      setError('Could not complete login. Please start again.');
     }
   }, [searchParams]);
 
-  const handleResend = async () => {
-    if (!email) {
-      setResendMsg('Enter your email address first.');
-      return;
-    }
-    setResendMsg('');
-    const supabase = createClient();
-    const { error: resendError } = await supabase.auth.resend({
-      type: 'signup',
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding`,
-      },
-    });
-    setResendMsg(
-      resendError ? resendError.message : 'Confirmation email sent. Check your inbox and spam folder.'
-    );
-  };
-
-  const handleLogin = async (e: React.FormEvent) => {
+  const startLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    setNeedsConfirm(false);
-    const supabase = createClient();
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    const res = await fetch('/api/auth/whatsapp/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone }),
+    });
+    const data = await res.json();
     setLoading(false);
-    if (authError) {
-      const msg = authError.message;
-      if (isEmailNotConfirmedError(msg)) {
-        setNeedsConfirm(true);
-      }
-      setError(friendlyAuthError(msg));
+    if (!res.ok) {
+      setError(data.message ?? 'Could not start WhatsApp login.');
       return;
     }
-    router.push(searchParams.get('redirect') || '/');
-    router.refresh();
+    setChallengeId(data.challengeId);
+    setCode(data.code);
+    setMessage(data.message);
+    setWaUrl(data.waUrl ?? null);
+    setFullName(data.fullName ?? '');
+    setStep('whatsapp');
+    setPolling(true);
   };
+
+  const pollStatus = useCallback(async () => {
+    if (!challengeId) return;
+    const res = await fetch(`/api/auth/whatsapp/status?challengeId=${encodeURIComponent(challengeId)}`);
+    const data = await res.json();
+    if (data.status === 'confirmed' && data.finishUrl) {
+      setPolling(false);
+      window.location.href = data.finishUrl;
+      return;
+    }
+    if (data.status === 'expired') {
+      setPolling(false);
+      setError('Code expired. Enter your number again.');
+      setStep('phone');
+    }
+  }, [challengeId]);
+
+  useEffect(() => {
+    if (!polling || !challengeId) return;
+    const id = setInterval(pollStatus, 2500);
+    pollStatus();
+    return () => clearInterval(id);
+  }, [polling, challengeId, pollStatus]);
+
+  if (step === 'whatsapp') {
+    return (
+      <div className="win98-dialog mb-6">
+        <div className="win98-titlebar">
+          <span>WHATSAPP LOGIN</span>
+          <span>×</span>
+        </div>
+        <Card className="border-0 rounded-none bg-bg-secondary space-y-4">
+          {fullName && (
+            <p className="font-body text-sm text-text-secondary">
+              Hi <strong className="text-text-primary">{fullName}</strong> — open WhatsApp and send this
+              exact message to our bot:
+            </p>
+          )}
+          <div className="rounded border-2 border-border-primary bg-bg-primary p-4 text-center">
+            <p className="font-display text-lg tracking-widest text-accent-green">{message}</p>
+            <p className="mt-2 font-display text-[10px] text-text-secondary">CODE: {code}</p>
+          </div>
+          {waUrl ? (
+            <a
+              href={waUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-10 w-full items-center justify-center rounded border-2 border-border-primary bg-accent-green px-4 font-display text-xs text-bg-primary shadow-win98 active:translate-x-[1px] active:translate-y-[1px]"
+            >
+              OPEN WHATSAPP
+            </a>
+          ) : (
+            <p className="text-sm text-accent-red">
+              WhatsApp bot number not configured. Contact the organizer.
+            </p>
+          )}
+          <p className="font-body text-xs text-text-secondary text-center animate-blink">
+            Waiting for your message…
+          </p>
+          {error && <p className="text-sm text-accent-red">{error}</p>}
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={() => {
+              setPolling(false);
+              setStep('phone');
+              setError('');
+            }}
+          >
+            USE DIFFERENT NUMBER
+          </Button>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="win98-dialog mb-6">
@@ -75,50 +138,31 @@ function LoginForm() {
         <span>×</span>
       </div>
       <Card className="border-0 rounded-none bg-bg-secondary">
-        <form onSubmit={handleLogin} className="space-y-4">
+        <p className="mb-4 font-body text-xs text-text-secondary">
+          Use the <strong className="text-text-primary">WhatsApp number</strong> you submitted on the
+          registration form. We will verify it, then you confirm via WhatsApp.
+        </p>
+        <form onSubmit={startLogin} className="space-y-4">
           <div>
-            <label className="font-display text-[10px] text-text-secondary">EMAIL</label>
+            <label className="font-display text-[10px] text-text-secondary">WHATSAPP NUMBER</label>
             <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="tel"
+              inputMode="numeric"
+              placeholder="08xxxxxxxxxx"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
               required
-              autoComplete="email"
-            />
-          </div>
-          <div>
-            <label className="font-display text-[10px] text-text-secondary">PASSWORD</label>
-            <Input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={8}
-              autoComplete="current-password"
+              autoComplete="tel"
             />
           </div>
           {error && <p className="text-sm text-accent-red">{error}</p>}
-          {resendMsg && (
-            <p
-              className={`text-sm ${resendMsg.includes('sent') || resendMsg.includes('confirmed') ? 'text-accent-green' : 'text-accent-red'}`}
-            >
-              {resendMsg}
-            </p>
-          )}
-          {needsConfirm && (
-            <Button type="button" variant="outline" className="w-full" onClick={handleResend}>
-              RESEND CONFIRMATION EMAIL
-            </Button>
-          )}
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'LOADING...' : 'LOGIN'}
+            {loading ? 'CHECKING...' : 'CONTINUE WITH WHATSAPP'}
           </Button>
         </form>
         <p className="mt-4 text-center font-body text-xs text-text-secondary">
-          No account?{' '}
-          <Link href="/auth/register" className="text-accent-green">
-            Register
-          </Link>
+          Already registered via the event form?{' '}
+          <span className="text-text-primary">No new sign-up needed.</span>
         </p>
       </Card>
     </div>

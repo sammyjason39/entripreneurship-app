@@ -31,7 +31,10 @@ export async function updateSession(request: NextRequest) {
   const isAuthRoute = path.startsWith('/auth');
   const isApiRoute = path.startsWith('/api/');
   const isPublicApi =
-    path.startsWith('/api/health') || path.startsWith('/_next') || path.startsWith('/icons');
+    path.startsWith('/api/health') ||
+    path.startsWith('/api/auth/whatsapp/') ||
+    path.startsWith('/_next') ||
+    path.startsWith('/icons');
 
   // API routes return JSON 401 from route handlers — never redirect to login HTML
   if (!user && !isAuthRoute && !isApiRoute && !isPublicApi && path !== '/offline') {

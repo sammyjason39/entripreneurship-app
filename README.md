@@ -101,7 +101,8 @@ Use Node 20+, enable HTTPS, and set `NEXT_PUBLIC_APP_URL` to your public URL.
 
 | Path | Role |
 |------|------|
-| `/auth/login`, `/auth/register` | Public |
+| `/auth/login` | Public — WhatsApp OTP (pre-registered roster) |
+| `/auth/register` | Info only (form registration already done) |
 | `/onboarding` | New users |
 | `/home`, `/bank`, `/missions`, `/map`, `/learn`, `/prizes`, `/profile` | Participant |
 | `/crew/*` | Crew (station judges, bank desk, etc.) |
@@ -114,7 +115,9 @@ Use Node 20+, enable HTTPS, and set `NEXT_PUBLIC_APP_URL` to your public URL.
 - [x] Sponsor logos in `public/brands/` (sourced from official sites)
 - [ ] Create first admin (`profiles.app_role = admin`)
 - [ ] Use `/admin/crew` to create crew logins and assignments
-- [ ] Test: register → team → submit → crew approve → EnCoins
+- [ ] Run `005_whatsapp_login.sql` + `npm run db:import-registrations` (see [docs/WHATSAPP_LOGIN.md](docs/WHATSAPP_LOGIN.md))
+- [ ] Configure n8n webhook + `WHATSAPP_BOT_NUMBER` / `WHATSAPP_WEBHOOK_API_KEY`
+- [ ] Test: WhatsApp login → onboarding → team → submit → crew approve → EnCoins
 - [ ] Test QR: crew reward + participant transfer
 
 ## License
