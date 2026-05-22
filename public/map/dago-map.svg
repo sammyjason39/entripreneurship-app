@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000">
+  <rect width="800" height="1000" fill="#0D1B35"/>
+  <text x="400" y="80" fill="#4ADE80" font-family="monospace" font-size="28" text-anchor="middle">DAGO PAKAR MAP</text>
+  <path d="M120 200 L680 180 L720 850 L80 820 Z" fill="#1A2E50" stroke="#3B82F6" stroke-width="2"/>
+  <text x="400" y="500" fill="#94A3B8" font-family="monospace" font-size="16" text-anchor="middle">Replace with event map PNG</text>
+</svg>
