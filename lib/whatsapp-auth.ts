@@ -14,21 +14,29 @@ export function generateLoginCode(): string {
   return code;
 }
 
+const DEFAULT_BOT_NUMBER = '447441424421';
+
 export function buildLoginMessage(code: string): string {
-  return `Log me in ${code}`;
+  return `Hi Connext! Let me login to entripreneurship.fun (${code})`;
 }
 
 export function parseCodeFromMessage(message: string): string | null {
-  const match = message.trim().match(/log\s+me\s+in\s+([A-Za-z0-9]{6})/i);
-  return match ? match[1]!.toUpperCase() : null;
+  const text = message.trim();
+  const connext = text.match(/entripreneurship\.fun\s*\(([A-Za-z0-9]{6})\)/i);
+  if (connext) return connext[1]!.toUpperCase();
+  const legacy = text.match(/log\s+me\s+in\s+([A-Za-z0-9]{6})/i);
+  if (legacy) return legacy[1]!.toUpperCase();
+  const paren = text.match(/\(([A-Za-z0-9]{6})\)/);
+  return paren ? paren[1]!.toUpperCase() : null;
 }
 
 export function getWhatsAppBotNumber(): string {
   const raw =
     process.env.WHATSAPP_BOT_NUMBER?.trim() ||
     process.env.NEXT_PUBLIC_WHATSAPP_BOT_NUMBER?.trim() ||
-    '';
-  return raw.replace(/\D/g, '');
+    DEFAULT_BOT_NUMBER;
+  const digits = raw.replace(/\D/g, '');
+  return digits || DEFAULT_BOT_NUMBER;
 }
 
 export function buildWhatsAppDeepLink(code: string): string | null {

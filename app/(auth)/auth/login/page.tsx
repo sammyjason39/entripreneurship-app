@@ -89,7 +89,7 @@ function LoginForm() {
           {fullName && (
             <p className="font-body text-sm text-text-secondary">
               Hi <strong className="text-text-primary">{fullName}</strong> — open WhatsApp and send this
-              exact message to our bot:
+              exact message to <strong className="text-text-primary">Connext</strong>:
             </p>
           )}
           <div className="rounded border-2 border-border-primary bg-bg-primary p-4 text-center">

@@ -7,7 +7,7 @@ import {
 import { normalizeWhatsAppPhone } from '@/lib/phone';
 
 /**
- * Called by n8n when your WhatsApp bot receives: "Log me in ABC123"
+ * Called by n8n when your WhatsApp bot receives the Connext login message
  * See docs/WHATSAPP_LOGIN.md
  */
 export async function POST(request: Request) {
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
         {
           ok: false,
           error: 'invalid_payload',
-          hint: 'Send phone (or whatsapp/from) and code (or otp), or message containing "Log me in XXXXXX"',
+          hint: 'Send phone and code, or message like: Hi Connext! Let me login to entripreneurship.fun (XXXXXX)',
         },
         { status: 400 }
       );

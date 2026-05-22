@@ -7,8 +7,8 @@ Participants are pre-registered from the Microsoft Forms CSV. They **do not** si
 1. User opens **Login** and enters their WhatsApp number (same as on the form).
 2. App checks `event_registrations` in Supabase.
 3. App generates a 6-character code (example: `K7M2P4`) and shows:
-   - Message to send: `Log me in K7M2P4`
-   - Button: **Open WhatsApp** (`wa.me` deep link to your bot)
+   - Message to send: `Hi Connext! Let me login to entripreneurship.fun (K7M2P4)`
+   - Button: **Open WhatsApp** (`https://wa.me/447441424421?text=...`)
 4. User sends that message to your **AI WhatsApp bot number**.
 5. **n8n** receives the message and calls our webhook with the sender phone + code.
 6. App marks the challenge **confirmed**; the browser polls until it redirects to finish login.
@@ -31,7 +31,7 @@ Participants are pre-registered from the Microsoft Forms CSV. They **do not** si
 | Variable | Where | Purpose |
 |----------|--------|---------|
 | `WHATSAPP_WEBHOOK_API_KEY` | Server only | Secret n8n sends on every webhook call |
-| `WHATSAPP_BOT_NUMBER` | Server | Digits only, e.g. `6281234567890` (no `+`) |
+| `WHATSAPP_BOT_NUMBER` | Server | Digits only, e.g. `447441424421` (no `+`; default Connext bot) |
 | `NEXT_PUBLIC_WHATSAPP_BOT_NUMBER` | Optional client | Same number if you need it in UI later |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server | Create users + confirm logins |
 | `NEXT_PUBLIC_APP_URL` | Server | Magic link redirect after login |
@@ -86,7 +86,7 @@ If the key is wrong or missing → `401 Unauthorized`.
 ```json
 {
   "phone": "628978073890",
-  "message": "Log me in K7M2P4"
+  "message": "Hi Connext! Let me login to entripreneurship.fun (K7M2P4)"
 }
 ```
 
@@ -96,7 +96,7 @@ If the key is wrong or missing → `401 Unauthorized`.
 |-----------|------------------|
 | `phone` | `whatsapp`, `from`, `sender` |
 | `code` | `otp` |
-| `message` | Full text; must match `Log me in XXXXXX` (case insensitive) |
+| `message` | Full text; must include `entripreneurship.fun (XXXXXX)` (6-char code in parentheses) |
 
 ### Example success response (`200`)
 
@@ -120,10 +120,10 @@ If the key is wrong or missing → `401 Unauthorized`.
 ## n8n workflow (sketch)
 
 1. **Trigger** — WhatsApp message received (your bot / Evolution / Meta provider).
-2. **IF** — Message contains `Log me in` (optional).
+2. **IF** — Message contains `entripreneurship.fun` (optional).
 3. **Set** — Map fields:
-   - `phone` → sender number in `62…` format (strip `+`, leading `0` → `62`).
-   - `code` → extract 6 chars after `Log me in`, **or** pass full `message`.
+   - `phone` → sender number (digits only; Indonesian `08…` → `62…` if needed).
+   - `code` → 6 characters inside `(...)` at end of message, **or** pass full `message`.
 4. **HTTP Request**
    - Method: `POST`
    - URL: `https://entripreneurship.fun/api/auth/whatsapp/webhook`
