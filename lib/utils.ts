@@ -27,9 +27,18 @@ export function formatEnCoins(amount: number): string {
   return `${amount.toLocaleString('id-ID')} EC`;
 }
 
-export function parseQrData(raw: string): { type: 'static' | 'session'; token: string } | null {
+export function parseQrData(
+  raw: string
+): { type: 'static' | 'session' | 'station'; token: string; stationId?: string } | null {
   try {
-    const parsed = JSON.parse(raw) as { type?: string; token?: string };
+    const parsed = JSON.parse(raw) as { type?: string; token?: string; stationId?: string };
+    if (parsed.type === 'station' && typeof parsed.token === 'string') {
+      return {
+        type: 'station',
+        token: parsed.token,
+        stationId: typeof parsed.stationId === 'string' ? parsed.stationId : undefined,
+      };
+    }
     if (
       (parsed.type === 'static' || parsed.type === 'session') &&
       typeof parsed.token === 'string'

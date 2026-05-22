@@ -11,6 +11,8 @@ export default async function CrewHomePage() {
   const permissions = getCrewPermissions(profile, assignment);
 
   const links = [
+    { href: '/crew/station', label: 'Station QR & check-out', show: true },
+    { href: '/crew/tracking', label: 'Team movement tracker', show: true },
     { href: '/crew/pay', label: 'EnCoins — add / deduct', show: permissions.canPay },
     { href: '/crew/map', label: 'Team locations (live map)', show: permissions.canViewMap },
     { href: '/crew/leaderboard', label: 'Live leaderboard', show: permissions.canViewLeaderboard },

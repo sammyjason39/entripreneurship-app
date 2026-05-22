@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 const statusStyles: Record<string, string> = {
   locked: 'bg-text-secondary/20 text-text-secondary',
   in_progress: 'bg-accent-yellow/20 text-accent-yellow',
+  checked_in: 'bg-accent-green/30 text-accent-green',
   pending: 'bg-accent-blue/20 text-accent-blue',
   approved: 'bg-accent-green/20 text-accent-green',
   rejected: 'bg-accent-red/20 text-accent-red',
@@ -16,11 +17,12 @@ interface StationCardProps {
   number: number;
   name: string;
   activityType: string;
-  status: SubmissionStatus | 'in_progress' | 'locked';
+  status: SubmissionStatus | 'in_progress' | 'locked' | 'checked_in';
 }
 
 export function StationCard({ id, number, name, activityType, status }: StationCardProps) {
-  const label = status.replace('_', ' ').toUpperCase();
+  const label =
+    status === 'checked_in' ? 'CHECKED IN' : status.replace(/_/g, ' ').toUpperCase();
   return (
     <Link href={`/missions/${id}`}>
       <Card className="flex items-center justify-between gap-3 hover:border-border-active btn-press">

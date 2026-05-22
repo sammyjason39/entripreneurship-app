@@ -12,6 +12,7 @@ const links = [
   { href: '/crew/submissions', label: 'Submissions' },
   { href: '/crew/leaderboard', label: 'Leaderboard' },
   { href: '/crew/teams', label: 'Teams' },
+  { href: '/crew/tracking', label: 'Team movement' },
   { href: '/crew/map', label: 'Live map' },
 ];
 

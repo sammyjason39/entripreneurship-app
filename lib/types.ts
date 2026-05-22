@@ -110,6 +110,18 @@ export interface Station {
   map_y: number | null;
   point_reward: number;
   is_active: boolean;
+  checkin_token?: string | null;
+}
+
+export interface StationVisit {
+  id: string;
+  team_id: string;
+  station_id: string;
+  checked_in_at: string;
+  checked_in_by: string;
+  checked_out_at: string | null;
+  checked_out_by: string | null;
+  status: 'active' | 'completed';
 }
 
 export interface FormField {
@@ -171,8 +183,9 @@ export interface ContentItem {
 }
 
 export interface QrPayload {
-  type: 'static' | 'session';
+  type: 'static' | 'session' | 'station';
   token: string;
+  stationId?: string;
 }
 
 export const TEAM_ROLES: TeamRole[] = ['CEO', 'CTO', 'CFO', 'CMO', 'COO', 'CPO'];

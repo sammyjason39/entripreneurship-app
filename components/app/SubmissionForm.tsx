@@ -28,6 +28,16 @@ export function SubmissionForm({ station, teamId, userId, existingId }: Submissi
   const submit = async () => {
     setLoading(true);
     setError('');
+    const visitRes = await fetch(
+      `/api/stations/visit-status?stationId=${encodeURIComponent(station.id)}`
+    );
+    const visitData = await visitRes.json();
+    if (!visitRes.ok || !visitData.checkedIn) {
+      setError('Check in at this station QR before submitting.');
+      setLoading(false);
+      return;
+    }
+
     const supabase = createClient();
     let image_url: string | null = null;
 
