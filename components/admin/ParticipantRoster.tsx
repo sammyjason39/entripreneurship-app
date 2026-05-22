@@ -13,9 +13,16 @@ function whatsappForEdit(normalized: string) {
   return normalized;
 }
 
-export function ParticipantRoster({ initial }: { initial: EventRegistration[] }) {
+export function ParticipantRoster({
+  rows,
+  setRows,
+  onReload,
+}: {
+  rows: EventRegistration[];
+  setRows: React.Dispatch<React.SetStateAction<EventRegistration[]>>;
+  onReload: () => Promise<void>;
+}) {
   const router = useRouter();
-  const [rows, setRows] = useState(initial);
   const [search, setSearch] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState('');
@@ -67,9 +74,13 @@ export function ParticipantRoster({ initial }: { initial: EventRegistration[] })
       setError((data as { error?: string }).error ?? 'Update failed');
       return;
     }
+    const updated = (data as { registration?: EventRegistration }).registration;
+    if (updated) {
+      setRows((prev) => prev.map((x) => (x.id === id ? updated : x)));
+    }
     setEditingId(null);
     router.refresh();
-    await runSearch();
+    await onReload();
   };
 
   const remove = async (r: EventRegistration) => {
@@ -89,6 +100,7 @@ export function ParticipantRoster({ initial }: { initial: EventRegistration[] })
     }
     setRows((prev) => prev.filter((x) => x.id !== r.id));
     router.refresh();
+    await onReload();
   };
 
   return (

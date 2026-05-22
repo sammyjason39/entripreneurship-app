@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import type { Team, TeamMember, Profile } from '@/lib/types';
+import { cache } from 'react';
 
-export async function getTeamForUser(userId: string) {
+export const getTeamForUser = cache(async function getTeamForUser(userId: string) {
   const supabase = await createClient();
   const { data: membership } = await supabase
     .from('team_members')
@@ -23,4 +24,4 @@ export async function getTeamForUser(userId: string) {
     role: membership.team_role,
     members: (members ?? []) as (TeamMember & { profiles: Profile })[],
   };
-}
+});

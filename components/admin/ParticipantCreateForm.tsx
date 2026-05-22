@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
+import type { EventRegistration } from '@/lib/types';
 
 const empty = {
   full_name: '',
@@ -15,7 +16,11 @@ const empty = {
   commit_attendance: '',
 };
 
-export function ParticipantCreateForm() {
+export function ParticipantCreateForm({
+  onCreated,
+}: {
+  onCreated?: (registration: EventRegistration) => void;
+}) {
   const router = useRouter();
   const [form, setForm] = useState(empty);
   const [error, setError] = useState('');
@@ -48,9 +53,11 @@ export function ParticipantCreateForm() {
       setError((data as { error?: string }).error ?? 'Could not add participant');
       return;
     }
+    const reg = (data as { registration?: EventRegistration }).registration;
     setSuccess(`${form.full_name} added — they can log in with WhatsApp.`);
     setForm(empty);
-    router.refresh();
+    if (reg) onCreated?.(reg);
+    else router.refresh();
   };
 
   return (

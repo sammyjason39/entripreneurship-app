@@ -2,8 +2,7 @@ import {
   getRegistrationStats,
   listEventRegistrations,
 } from '@/lib/admin-registrations';
-import { ParticipantCreateForm } from '@/components/admin/ParticipantCreateForm';
-import { ParticipantRoster } from '@/components/admin/ParticipantRoster';
+import { AdminParticipantsSection } from '@/components/admin/AdminParticipantsSection';
 import { Card } from '@/components/ui/card';
 
 export default async function AdminParticipantsPage() {
@@ -38,8 +37,7 @@ export default async function AdminParticipantsPage() {
         </Card>
       </div>
 
-      <ParticipantCreateForm />
-      <ParticipantRoster initial={registrations} />
+      <AdminParticipantsSection initial={registrations} />
     </main>
   );
 }

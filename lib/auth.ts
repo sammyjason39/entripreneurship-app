@@ -1,20 +1,23 @@
 import { createClient } from '@/lib/supabase/server';
 import type { Profile } from '@/lib/types';
 import { redirect } from 'next/navigation';
+import { cache } from 'react';
 
-export async function getSessionUser() {
+export const getSessionUser = cache(async function getSessionUser() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   return user;
-}
+});
 
-export async function getProfile(userId: string): Promise<Profile | null> {
+export const getProfile = cache(async function getProfile(
+  userId: string,
+): Promise<Profile | null> {
   const supabase = await createClient();
   const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();
   return data as Profile | null;
-}
+});
 
 export async function requireAuth() {
   const user = await getSessionUser();

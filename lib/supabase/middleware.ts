@@ -23,9 +23,11 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
+  // getSession() reads the JWT locally — getUser() calls Supabase Auth on every request (~100–300ms).
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user ?? null;
 
   const path = request.nextUrl.pathname;
   const isAuthRoute = path.startsWith('/auth');
