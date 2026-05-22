@@ -1,69 +1,44 @@
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
-import { requireCrew } from '@/lib/auth';
+import { requireCrewMember } from '@/lib/auth';
 import { getCrewAssignment } from '@/lib/crew-assignment';
+import { getCrewPermissions } from '@/lib/crew-permissions';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 export default async function CrewHomePage() {
-  const { user } = await requireCrew();
+  const { user, profile } = await requireCrewMember();
   const assignment = await getCrewAssignment(user.id);
-  const supabase = await createClient();
-
-  const { count: teamCount } = await supabase
-    .from('teams')
-    .select('*', { count: 'exact', head: true });
-  const { count: memberCount } = await supabase
-    .from('team_members')
-    .select('*', { count: 'exact', head: true });
-  const { count: pendingCount } = await supabase
-    .from('submissions')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'pending');
-  const { data: txSum } = await supabase
-    .from('transactions')
-    .select('amount')
-    .eq('type', 'reward');
-
-  const totalPoints = txSum?.reduce((a, t) => a + t.amount, 0) ?? 0;
+  const permissions = getCrewPermissions(profile, assignment);
 
   const links = [
-    { href: '/crew/teams', label: 'Teams' },
-    { href: '/crew/submissions', label: 'Submissions' },
-    { href: '/crew/scan', label: 'Scan QR' },
-    { href: '/crew/qr', label: 'Give Points QR' },
-    { href: '/crew/map', label: 'Live Map' },
-    { href: '/crew/leaderboard', label: 'Leaderboard' },
-  ];
+    { href: '/crew/pay', label: 'EnCoins — add / deduct', show: permissions.canPay },
+    { href: '/crew/map', label: 'Team locations (live map)', show: permissions.canViewMap },
+    { href: '/crew/leaderboard', label: 'Live leaderboard', show: permissions.canViewLeaderboard },
+    {
+      href: '/crew/register',
+      label: 'Register participant (form list)',
+      show: permissions.canRegisterParticipants,
+    },
+  ].filter((l) => l.show);
 
   return (
     <main className="space-y-6 p-4 text-on-bg-readable">
       <div>
-        <h1 className="font-display text-lg font-bold">CREW DASHBOARD</h1>
-        {assignment && (
-          <p className="mt-2 rounded border-2 border-border bg-bg-secondary px-3 py-2 font-body text-sm font-semibold text-text-on-surface">
-            Posted: {assignment.assignment_label}
+        <h1 className="font-display text-lg font-bold">Crew</h1>
+        <p className="mt-1 font-body text-sm text-text-on-bg-muted">
+          Field tools for the event — not the jury admin console.
+        </p>
+      </div>
+
+      {permissions.assignmentLabel && (
+        <Card>
+          <p className="font-display text-[10px] text-text-secondary">YOUR POST</p>
+          <p className="font-body text-sm font-semibold text-text-on-surface">
+            {permissions.assignmentLabel}
           </p>
-        )}
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <Card>
-          <p className="font-display text-[9px] text-text-secondary">TEAMS</p>
-          <p className="font-display text-2xl text-accent-blue">{teamCount ?? 0}</p>
         </Card>
-        <Card>
-          <p className="font-display text-[9px] text-text-secondary">PARTICIPANTS</p>
-          <p className="font-display text-2xl text-accent-green">{memberCount ?? 0}</p>
-        </Card>
-        <Card>
-          <p className="font-display text-[9px] text-text-secondary">PENDING</p>
-          <p className="font-display text-2xl text-accent-yellow">{pendingCount ?? 0}</p>
-        </Card>
-        <Card>
-          <p className="font-display text-[9px] text-text-secondary">POINTS GIVEN</p>
-          <p className="font-display text-2xl text-accent-green">{totalPoints}</p>
-        </Card>
-      </div>
+      )}
+
       <div className="grid gap-2">
         {links.map((l) => (
           <Link key={l.href} href={l.href}>
@@ -73,6 +48,12 @@ export default async function CrewHomePage() {
           </Link>
         ))}
       </div>
+
+      {!permissions.canRegisterParticipants && (
+        <p className="font-body text-xs text-text-on-bg-muted">
+          Participant registration is only on the registration desk account.
+        </p>
+      )}
     </main>
   );
 }

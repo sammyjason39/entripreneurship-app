@@ -46,6 +46,37 @@ export interface AdminCrewMember {
   assignment: CrewAssignment | null;
 }
 
+export interface EventRegistration {
+  id: string;
+  whatsapp_normalized: string;
+  full_name: string;
+  student_id: string | null;
+  study_program: string | null;
+  email: string | null;
+  form_email: string | null;
+  commit_attendance: string | null;
+  interests: string | null;
+  info_source: string | null;
+  referral_name: string | null;
+  user_id: string | null;
+  linked_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type EventRegistrationInput = {
+  full_name: string;
+  whatsapp: string;
+  student_id?: string | null;
+  study_program?: string | null;
+  email?: string | null;
+  form_email?: string | null;
+  commit_attendance?: string | null;
+  interests?: string | null;
+  info_source?: string | null;
+  referral_name?: string | null;
+};
+
 export interface Team {
   id: string;
   name: string;

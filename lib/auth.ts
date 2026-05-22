@@ -32,12 +32,26 @@ export async function requireParticipant() {
   return { user, profile };
 }
 
-export async function requireCrew() {
+/** Crew operational app only — admins must use /admin */
+export async function requireCrewMember() {
+  const { user, profile } = await requireAuth();
+  if (profile.app_role === 'admin') redirect('/admin');
+  if (profile.app_role !== 'crew') redirect('/home');
+  return { user, profile };
+}
+
+/** Crew tools that jury can open from the admin console */
+export async function requireCrewOrAdmin() {
   const { user, profile } = await requireAuth();
   if (profile.app_role !== 'crew' && profile.app_role !== 'admin') {
     redirect('/home');
   }
   return { user, profile };
+}
+
+/** @deprecated Use requireCrewMember or requireCrewOrAdmin */
+export async function requireCrew() {
+  return requireCrewOrAdmin();
 }
 
 export async function requireAdmin() {

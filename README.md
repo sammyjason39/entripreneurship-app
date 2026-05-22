@@ -106,7 +106,7 @@ Use Node 20+, enable HTTPS, and set `NEXT_PUBLIC_APP_URL` to your public URL.
 | `/onboarding` | New users |
 | `/home`, `/bank`, `/missions`, `/map`, `/learn`, `/prizes`, `/profile` | Participant |
 | `/crew/*` | Crew (station judges, bank desk, etc.) |
-| `/admin`, `/admin/crew` | Super admin / jury console |
+| `/admin`, `/admin/participants`, `/admin/crew` | Super admin / jury console |
 
 ## Event checklist
 

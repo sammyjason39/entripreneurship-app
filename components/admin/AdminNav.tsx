@@ -3,9 +3,11 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { LogoutButton } from '@/components/app/LogoutButton';
 
 const links = [
   { href: '/admin', label: 'Dashboard', exact: true },
+  { href: '/admin/participants', label: 'Participants' },
   { href: '/admin/crew', label: 'Crew & jury' },
   { href: '/crew/submissions', label: 'Submissions' },
   { href: '/crew/leaderboard', label: 'Leaderboard' },
@@ -23,6 +25,7 @@ export function AdminNav() {
           <p className="font-display text-[10px] font-bold text-text-on-bg-muted">JURY CONSOLE</p>
           <p className="font-display text-sm font-bold">EnTripreneurship Vol. 02</p>
         </div>
+        <div className="flex flex-wrap items-center gap-2">
         <nav className="flex flex-wrap gap-1">
           {links.map(({ href, label, exact }) => {
             const active = exact
@@ -44,6 +47,8 @@ export function AdminNav() {
             );
           })}
         </nav>
+        <LogoutButton />
+        </div>
       </div>
     </header>
   );

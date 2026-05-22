@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { listAdminCrewMembers } from '@/lib/admin-crew';
+import { getRegistrationStats } from '@/lib/admin-registrations';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { teamNameFromJoin } from '@/lib/supabase-helpers';
@@ -15,6 +16,7 @@ export default async function AdminDashboardPage() {
     { data: txSum },
     { data: recentPending },
     crewMembers,
+    regStats,
   ] = await Promise.all([
     supabase.from('teams').select('*', { count: 'exact', head: true }),
     supabase.from('team_members').select('*', { count: 'exact', head: true }),
@@ -30,6 +32,7 @@ export default async function AdminDashboardPage() {
       .order('submitted_at', { ascending: true })
       .limit(8),
     listAdminCrewMembers(),
+    getRegistrationStats(),
   ]);
 
   const totalPoints = txSum?.reduce((a, t) => a + t.amount, 0) ?? 0;
@@ -63,7 +66,7 @@ export default async function AdminDashboardPage() {
         </Card>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-3">
         <Card>
           <p className="font-display text-[10px] font-bold text-text-secondary">POINTS DISTRIBUTED</p>
           <p className="font-display text-3xl font-bold text-accent-green">{totalPoints}</p>
@@ -76,10 +79,31 @@ export default async function AdminDashboardPage() {
                 Manage crew
               </Button>
             </Link>
+            <Link href="/admin/participants">
+              <Button size="sm" variant="outline">
+                Participants ({regStats.total})
+              </Button>
+            </Link>
           </div>
         </Card>
 
         <Card>
+          <p className="mb-3 font-display text-[10px] font-bold text-text-secondary">
+            FORM REGISTRATIONS
+          </p>
+          <p className="font-display text-2xl font-bold text-accent-blue">{regStats.total}</p>
+          <p className="mt-1 font-body text-xs text-text-secondary">
+            {regStats.linked} logged in · {regStats.total - regStats.linked} not yet
+          </p>
+          <Link
+            href="/admin/participants"
+            className="mt-3 inline-block font-display text-xs text-accent-green underline"
+          >
+            Add or edit participants →
+          </Link>
+        </Card>
+
+        <Card className="lg:col-span-2">
           <p className="mb-3 font-display text-[10px] font-bold text-text-secondary">
             CREW ASSIGNMENTS
           </p>

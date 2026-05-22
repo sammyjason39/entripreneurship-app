@@ -2,6 +2,20 @@
 
 Use **email + password** on the login page under **Crew / admin login** (participants use WhatsApp).
 
+## Admin vs crew
+
+| | **Admin** (`/admin`) | **Crew** (`/crew`) |
+|--|---------------------|-------------------|
+| Who | `admin@entripreneurship.fun` | All other crew emails |
+| Jury dashboard, full participant list, manage crew | No |
+| Review all submissions, all teams | No |
+| Live map, leaderboard | Yes |
+| Add/deduct EnCoins (scan, QR, deduct) | Yes |
+| Register form participants | Only `registration@` desk |
+| Logout | Top-right on admin nav | Top-right on crew header |
+
+Crew accounts **cannot** open `/admin`. Admins use the jury console, not the crew phone UI.
+
 **Change these passwords after the event** if the repo is shared.
 
 ## Passwords
