@@ -18,13 +18,13 @@ export function OnboardingShell({
 }) {
   return (
     <main className="flex min-h-dvh flex-col justify-center p-6 pb-10">
-      <p className="mb-3 font-display text-xs text-accent-green">
+      <p className="mb-3 font-display text-xs font-bold text-text-on-bg">
         ONBOARDING — STEP {step} OF 3
       </p>
       <div className="win98-dialog w-full">
         <div className="win98-titlebar">
           <span>{STEP_TITLES[step]}</span>
-          <span className="opacity-80">{step}/3</span>
+          <span className="font-bold">{step}/3</span>
         </div>
         <Card className="space-y-4 border-0 rounded-none bg-bg-secondary">{children}</Card>
       </div>

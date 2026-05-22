@@ -38,11 +38,11 @@ export default async function HomePage() {
   return (
     <main className="space-y-6 p-4">
       <div>
-        <h1 className="font-display text-lg text-text-primary">
+        <h1 className="font-display text-lg">
           HELLO, {profile.full_name.split(' ')[0].toUpperCase()}
         </h1>
         {teamData && (
-          <span className="mt-1 inline-block rounded border border-border px-2 py-0.5 font-display text-[10px] text-accent-blue">
+          <span className="mt-1 inline-block rounded border-2 border-border bg-bg-secondary px-2 py-0.5 font-display text-[10px] font-bold text-text-on-surface">
             {teamData.team.name}
           </span>
         )}
@@ -55,14 +55,14 @@ export default async function HomePage() {
       <Card>
         <p className="font-display text-[10px] text-text-secondary">ACTIVE MISSION</p>
         <p className="mt-2 font-body text-sm">{activeMission}</p>
-        <Link href="/missions" className="mt-2 inline-block font-display text-xs text-accent-green">
+        <Link href="/missions" className="mt-2 inline-block font-display text-xs font-bold text-accent-green underline">
           VIEW ALL →
         </Link>
       </Card>
 
       {transactions && transactions.length > 0 && (
         <div className="space-y-2">
-          <p className="font-display text-[10px] text-text-secondary">RECENT</p>
+          <p className="font-display text-[10px] font-bold text-text-on-bg-muted">RECENT</p>
           {transactions.map((tx) => (
             <TransactionItem key={tx.id} tx={tx} teamId={teamData!.team.id} />
           ))}

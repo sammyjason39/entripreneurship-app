@@ -7,22 +7,22 @@ export default async function CrewLayout({ children }: { children: React.ReactNo
   const { profile } = await requireCrew();
 
   return (
-    <>
-      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-bg-primary px-4 py-3">
+    <div className="mx-auto min-h-dvh w-full max-w-[480px]">
+      <header className="sticky top-0 z-40 flex items-center justify-between border-b-2 border-border bg-bg-primary px-4 py-3 text-on-bg-readable">
         <div>
-          <span className="rounded bg-accent-blue/20 px-2 py-0.5 font-display text-[9px] text-accent-blue">
-            CREW
+          <span className="rounded border border-border bg-bg-secondary px-2 py-0.5 font-display text-[9px] font-bold text-text-on-surface">
+            {profile.app_role === 'admin' ? 'ADMIN' : 'CREW'}
           </span>
-          <p className="font-display text-sm">{profile.full_name}</p>
+          <p className="font-display text-sm font-bold">{profile.full_name}</p>
         </div>
-        <Link href="/crew">
+        <Link href={profile.app_role === 'admin' ? '/admin' : '/crew'}>
           <Button size="sm" variant="outline">
-            HOME
+            {profile.app_role === 'admin' ? 'JURY' : 'HOME'}
           </Button>
         </Link>
       </header>
       <div className="pb-24 pt-2">{children}</div>
       <CrewBottomNav />
-    </>
+    </div>
   );
 }

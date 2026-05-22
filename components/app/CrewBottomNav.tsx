@@ -16,7 +16,7 @@ export function CrewBottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-bg-primary">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t-2 border-border bg-bg-primary text-on-bg-readable">
       <div className="mx-auto flex max-w-[480px] justify-around py-2">
         {tabs.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(`${href}/`);
@@ -25,8 +25,10 @@ export function CrewBottomNav() {
               key={href}
               href={href}
               className={cn(
-                'flex flex-col items-center gap-0.5 px-3 py-1 font-display text-[9px] uppercase',
-                active ? 'text-accent-blue' : 'text-text-secondary'
+                'flex flex-col items-center gap-0.5 border-t-[3px] px-3 py-1 font-display text-[9px] font-bold uppercase',
+                active
+                  ? 'border-accent-blue text-text-on-bg'
+                  : 'border-transparent text-text-on-bg-muted'
               )}
             >
               <Icon size={22} />

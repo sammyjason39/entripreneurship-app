@@ -22,8 +22,8 @@ export default async function MissionsPage() {
 
   return (
     <main className="space-y-4 p-4">
-      <h1 className="font-display text-lg">MISSIONS</h1>
-      <p className="font-body text-xs text-text-secondary">7 Design Thinking stations</p>
+      <h1 className="font-display text-lg font-bold">MISSIONS</h1>
+      <p className="font-body text-xs font-semibold text-text-on-bg-muted">7 Design Thinking stations</p>
       <div className="space-y-3">
         {stations?.map((st) => {
           const status = subMap.get(st.id);

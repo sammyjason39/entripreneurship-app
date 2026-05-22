@@ -1,9 +1,13 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
+import { requireCrew } from '@/lib/auth';
+import { getCrewAssignment } from '@/lib/crew-assignment';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 export default async function CrewHomePage() {
+  const { user } = await requireCrew();
+  const assignment = await getCrewAssignment(user.id);
   const supabase = await createClient();
 
   const { count: teamCount } = await supabase
@@ -33,8 +37,15 @@ export default async function CrewHomePage() {
   ];
 
   return (
-    <main className="p-4 space-y-6">
-      <h1 className="font-display text-lg">CREW DASHBOARD</h1>
+    <main className="space-y-6 p-4 text-on-bg-readable">
+      <div>
+        <h1 className="font-display text-lg font-bold">CREW DASHBOARD</h1>
+        {assignment && (
+          <p className="mt-2 rounded border-2 border-border bg-bg-secondary px-3 py-2 font-body text-sm font-semibold text-text-on-surface">
+            Posted: {assignment.assignment_label}
+          </p>
+        )}
+      </div>
       <div className="grid grid-cols-2 gap-3">
         <Card>
           <p className="font-display text-[9px] text-text-secondary">TEAMS</p>

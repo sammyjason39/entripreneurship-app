@@ -26,6 +26,7 @@ export async function requireAuth() {
 
 export async function requireParticipant() {
   const { user, profile } = await requireAuth();
+  if (profile.app_role === 'admin') redirect('/admin');
   if (profile.app_role === 'crew') redirect('/crew');
   if (!profile.onboarding_complete) redirect('/onboarding');
   return { user, profile };
@@ -34,6 +35,15 @@ export async function requireParticipant() {
 export async function requireCrew() {
   const { user, profile } = await requireAuth();
   if (profile.app_role !== 'crew' && profile.app_role !== 'admin') {
+    redirect('/home');
+  }
+  return { user, profile };
+}
+
+export async function requireAdmin() {
+  const { user, profile } = await requireAuth();
+  if (profile.app_role !== 'admin') {
+    if (profile.app_role === 'crew') redirect('/crew');
     redirect('/home');
   }
   return { user, profile };

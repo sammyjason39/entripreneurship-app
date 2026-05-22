@@ -15,9 +15,8 @@ export default async function RootPage() {
 
   if (!profile.onboarding_complete) redirect('/onboarding');
 
-  if (profile.app_role === 'crew' || profile.app_role === 'admin') {
-    redirect('/crew');
-  }
+  if (profile.app_role === 'admin') redirect('/admin');
+  if (profile.app_role === 'crew') redirect('/crew');
 
   redirect('/home');
 }

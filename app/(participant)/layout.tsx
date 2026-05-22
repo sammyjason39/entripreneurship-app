@@ -13,11 +13,11 @@ export default async function ParticipantLayout({
   const teamData = await getTeamForUser(user.id);
 
   return (
-    <>
+    <div className="mx-auto min-h-dvh w-full max-w-[480px]">
       <LocationTracker enabled={profile.onboarding_complete} />
       <TopBar teamName={teamData?.team.name} balance={teamData?.team.balance} />
       <div className="pb-24 pt-2">{children}</div>
       <BottomNav />
-    </>
+    </div>
   );
 }

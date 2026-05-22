@@ -33,7 +33,7 @@ export function MapView({ stations, onPinClick, selectedId }: MapViewProps) {
                   style={{ left: `${s.map_x}%`, top: `${s.map_y}%` }}
                   onClick={() => onPinClick?.(s)}
                 >
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-accent-green bg-bg-primary font-display text-[10px] text-accent-green shadow-[0_0_12px_#4ade80]">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-accent-green bg-bg-secondary font-display text-[10px] text-accent-green shadow-[0_0_12px_var(--color-glow-green)]">
                     {s.number}
                   </span>
                 </button>

@@ -20,7 +20,8 @@ Mobile-first Progressive Web App for the BINUS EnTripreneurship event (May 23, 2
 3. Run SQL from `supabase/migrations/001_initial_schema.sql` in the SQL Editor
 3. Create Storage bucket `submissions` (public read for crew review)
 4. Enable Realtime on `submissions`, `teams`, `location_pings`
-5. Create crew users in Auth, then set `profiles.app_role = 'crew'` in Table Editor
+5. Run `supabase/migrations/004_admin_crew_assignments.sql`
+6. Promote your jury lead: set `profiles.app_role = 'admin'` for their user in Table Editor (or create via admin UI once one admin exists)
 
 ### 2. Environment
 
@@ -103,14 +104,16 @@ Use Node 20+, enable HTTPS, and set `NEXT_PUBLIC_APP_URL` to your public URL.
 | `/auth/login`, `/auth/register` | Public |
 | `/onboarding` | New users |
 | `/home`, `/bank`, `/missions`, `/map`, `/learn`, `/prizes`, `/profile` | Participant |
-| `/crew/*` | Crew / admin |
+| `/crew/*` | Crew (station judges, bank desk, etc.) |
+| `/admin`, `/admin/crew` | Super admin / jury console |
 
 ## Event checklist
 
 - [ ] Run migration + seed stations/content
 - [ ] Upload real map to `public/map/dago-map.svg` (or `.png`)
 - [x] Sponsor logos in `public/brands/` (sourced from official sites)
-- [ ] Create crew accounts (`app_role = crew`)
+- [ ] Create first admin (`profiles.app_role = admin`)
+- [ ] Use `/admin/crew` to create crew logins and assignments
 - [ ] Test: register → team → submit → crew approve → EnCoins
 - [ ] Test QR: crew reward + participant transfer
 

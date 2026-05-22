@@ -10,7 +10,7 @@ export default async function BankPage() {
   const teamData = await getTeamForUser(user.id);
 
   if (!teamData) {
-    return <p className="p-4 text-text-secondary">No team found.</p>;
+    return <p className="p-4 font-semibold text-text-on-bg">No team found.</p>;
   }
 
   return (

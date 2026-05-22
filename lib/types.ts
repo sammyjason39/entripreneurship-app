@@ -1,4 +1,11 @@
 export type AppRole = 'participant' | 'crew' | 'admin';
+export type CrewAssignmentKind =
+  | 'jury'
+  | 'station'
+  | 'bank'
+  | 'registration'
+  | 'roaming'
+  | 'general';
 export type TeamRole = 'CEO' | 'CTO' | 'CFO' | 'CMO' | 'COO' | 'CPO';
 export type SubmissionStatus = 'pending' | 'approved' | 'rejected';
 export type TransactionType = 'reward' | 'spend' | 'transfer';
@@ -15,6 +22,28 @@ export interface Profile {
   pin_failed_attempts?: number;
   pin_locked_until?: string | null;
   created_at: string;
+}
+
+export interface CrewAssignment {
+  user_id: string;
+  assignment_label: string;
+  assignment_kind: CrewAssignmentKind;
+  station_id: string | null;
+  notes: string | null;
+  assigned_by: string | null;
+  created_at: string;
+  updated_at: string;
+  stations?: { id: string; number: number; name: string } | null;
+}
+
+export interface AdminCrewMember {
+  id: string;
+  email: string;
+  full_name: string;
+  app_role: AppRole;
+  onboarding_complete: boolean;
+  created_at: string;
+  assignment: CrewAssignment | null;
 }
 
 export interface Team {

@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PINInput } from '@/components/app/PINInput';
 import { TransactionPinHelp } from '@/components/app/TransactionPinHelp';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { TEAM_ROLES } from '@/lib/types';
 import { profileNameFromJoin, teamFromJoin } from '@/lib/supabase-helpers';
 
@@ -98,9 +99,11 @@ export default function ProfilePage() {
   };
 
   return (
-    <main className="p-4 space-y-6">
+    <main className="space-y-6 p-4 text-on-bg-readable">
+      <ThemeToggle />
+
       <div>
-        <h1 className="font-display text-2xl">{team?.name ?? '—'}</h1>
+        <h1 className="font-display text-2xl font-bold">{team?.name ?? '—'}</h1>
         {team?.role === 'CEO' && (
           <p className="font-display text-xs text-accent-yellow mt-2">
             TEAM CODE: {team.join_code}

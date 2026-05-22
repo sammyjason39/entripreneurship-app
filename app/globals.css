@@ -2,21 +2,66 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --color-bg-primary: #050b18;
-  --color-bg-secondary: #0d1b35;
-  --color-bg-tertiary: #1a2e50;
-  --color-border: #1e3a6e;
-  --color-border-active: #3b82f6;
-  --color-accent-green: #4ade80;
-  --color-accent-blue: #60a5fa;
-  --color-accent-yellow: #facc15;
-  --color-accent-red: #f87171;
-  --color-text-primary: #e2e8f0;
-  --color-text-secondary: #94a3b8;
-  --color-text-accent: #4ade80;
-  --color-pixel-green: #6fbe44;
-  --color-pixel-blue: #1e3a8a;
+/* EnTripreneurship Vol. 2 — retro Windows / poster palette */
+
+:root,
+[data-theme='dark'] {
+  /* Darker desktop blue — white text meets ~7:1+ for outdoor sunlight */
+  --color-bg-primary: #1a2f5c;
+  --color-bg-grid: #2a4478;
+  --color-bg-secondary: #e8e8e8;
+  --color-bg-tertiary: #d0d0d0;
+  --color-border: #000000;
+  --color-border-active: #5d9cff;
+  --color-accent-green: #8fdc5c;
+  --color-accent-blue: #5d9cff;
+  --color-accent-yellow: #ffe566;
+  --color-accent-red: #ff4444;
+  --color-text-on-bg: #ffffff;
+  --color-text-on-bg-muted: #e2ebff;
+  --color-text-on-surface: #000000;
+  --color-text-primary: #000000;
+  --color-text-secondary: #2a2a2a;
+  --color-text-accent: #2d6b1f;
+  --color-link-on-bg: #ffe566;
+  --color-text-on-accent: #000000;
+  --color-pixel-green: #78c850;
+  --color-pixel-blue: #3b5998;
+  --color-titlebar-from: #3b5998;
+  --color-titlebar-to: #5d87c1;
+  --color-glow-green: rgba(120, 200, 80, 0.55);
+  --color-win-highlight: #ffffff;
+  --color-win-shadow: #808080;
+  --color-win-deep-shadow: #000000;
+}
+
+[data-theme='light'] {
+  --color-bg-primary: #e5e5e5;
+  --color-bg-grid: #d8d8d8;
+  --color-bg-secondary: #ffffff;
+  --color-bg-tertiary: #d4d4d4;
+  --color-border: #000000;
+  --color-border-active: #1e4a9a;
+  --color-accent-green: #2e7d32;
+  --color-accent-blue: #1e4a9a;
+  --color-accent-yellow: #9a7200;
+  --color-accent-red: #b00000;
+  --color-text-on-bg: #000000;
+  --color-text-on-bg-muted: #2d2d2d;
+  --color-text-on-surface: #000000;
+  --color-text-primary: #000000;
+  --color-text-secondary: #2d2d2d;
+  --color-text-accent: #2e7d32;
+  --color-link-on-bg: #1e4a9a;
+  --color-text-on-accent: #000000;
+  --color-pixel-green: #4caf50;
+  --color-pixel-blue: #3b5998;
+  --color-titlebar-from: #3b5998;
+  --color-titlebar-to: #4a69bd;
+  --color-glow-green: rgba(76, 175, 80, 0.35);
+  --color-win-highlight: #ffffff;
+  --color-win-shadow: #808080;
+  --color-win-deep-shadow: #000000;
 }
 
 * {
@@ -30,10 +75,46 @@ body {
 }
 
 body {
-  color: var(--color-text-primary);
-  background: var(--color-bg-primary);
-  font-family: var(--font-body), 'Courier New', monospace;
+  color: var(--color-text-on-bg);
+  background-color: var(--color-bg-primary);
+  font-family: var(--font-body), 'Tahoma', 'MS Sans Serif', sans-serif;
   min-height: 100dvh;
+}
+
+main {
+  color: var(--color-text-on-bg);
+}
+
+/* Outdoor legibility on desktop background (nav, headers, page titles) */
+[data-theme='dark'] body,
+[data-theme='dark'] main,
+[data-theme='dark'] .text-on-bg-readable {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0 1px rgba(0, 0, 0, 0.75);
+}
+
+[data-theme='light'] body,
+[data-theme='light'] main {
+  text-shadow: none;
+}
+
+/* Window panels: crisp text without desktop shadow */
+[data-theme='dark'] .bg-bg-secondary,
+[data-theme='dark'] .bg-bg-secondary *,
+[data-theme='dark'] .bg-bg-tertiary,
+[data-theme='dark'] .bg-bg-tertiary * {
+  text-shadow: none;
+}
+
+.theme-desktop {
+  background-color: var(--color-bg-primary);
+  background-image:
+    linear-gradient(var(--color-bg-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-bg-grid) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+[data-theme='light'] .theme-desktop {
+  background-image: none;
 }
 
 .scanlines::before {
@@ -45,28 +126,36 @@ body {
     0deg,
     transparent,
     transparent 2px,
-    rgba(0, 0, 0, 0.08) 2px,
-    rgba(0, 0, 0, 0.08) 4px
+    rgba(0, 0, 0, 0.06) 2px,
+    rgba(0, 0, 0, 0.06) 4px
   );
   z-index: 1;
 }
 
+[data-theme='light'] .scanlines::before {
+  opacity: 0.35;
+}
+
 .btn-press:active {
-  transform: scale(0.95);
-  filter: brightness(1.15);
+  transform: scale(0.98);
+  filter: brightness(0.95);
 }
 
 .win98-dialog {
   border: 2px solid var(--color-border);
   background: var(--color-bg-secondary);
   box-shadow:
-    inset 1px 1px 0 var(--color-text-secondary),
-    inset -1px -1px 0 #000;
+    inset 1px 1px 0 var(--color-win-highlight),
+    inset -1px -1px 0 var(--color-win-deep-shadow);
 }
 
 .win98-titlebar {
-  background: linear-gradient(90deg, var(--color-pixel-blue), var(--color-accent-blue));
-  color: white;
+  background: linear-gradient(
+    90deg,
+    var(--color-titlebar-from),
+    var(--color-titlebar-to)
+  );
+  color: var(--color-text-on-bg);
   font-family: var(--font-display), monospace;
   text-transform: uppercase;
   font-size: 11px;
@@ -74,10 +163,37 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.win98-toggle {
+  box-shadow:
+    inset 1px 1px 0 var(--color-win-highlight),
+    inset -1px -1px 0 var(--color-win-shadow);
+}
+
+.win98-toggle-on {
+  background: var(--color-accent-green);
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  .text-on-bg-readable {
+    color: var(--color-text-on-bg);
+    text-shadow: inherit;
+  }
+
+  .text-on-bg-muted {
+    color: var(--color-text-on-bg-muted);
+    text-shadow: inherit;
+  }
+
+  .text-link-on-bg {
+    color: var(--color-link-on-bg);
+    font-weight: 600;
+    text-shadow: inherit;
   }
 }
