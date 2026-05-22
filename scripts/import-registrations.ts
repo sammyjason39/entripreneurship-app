@@ -12,6 +12,7 @@
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { createClient } from '@supabase/supabase-js';
+import ws from 'ws';
 import { normalizeWhatsAppPhone } from '../lib/phone';
 
 const CSV_PATH = resolve(__dirname, '../data/registrations.csv');
@@ -135,6 +136,7 @@ async function main() {
 
   const supabase = createClient(url!, key!, {
     auth: { persistSession: false, autoRefreshToken: false },
+    realtime: { transport: ws as unknown as typeof WebSocket },
   });
 
   const { error: delError } = await supabase.from('event_registrations').delete().neq('id', '00000000-0000-0000-0000-000000000000');

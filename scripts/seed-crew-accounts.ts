@@ -10,7 +10,8 @@
 
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import ws from 'ws';
 import { buildAssignmentLabel } from '../lib/admin';
 import type { CrewAssignmentKind } from '../lib/types';
 
@@ -83,10 +84,14 @@ function loadEnv() {
   }
 }
 
-async function findUserIdByEmail(
-  service: ReturnType<typeof createClient>,
-  email: string
-): Promise<string | null> {
+function createService(url: string, key: string): SupabaseClient {
+  return createClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    realtime: { transport: ws as unknown as typeof WebSocket },
+  });
+}
+
+async function findUserIdByEmail(service: SupabaseClient, email: string): Promise<string | null> {
   let page = 1;
   const target = email.toLowerCase();
   while (page <= 20) {
@@ -101,7 +106,7 @@ async function findUserIdByEmail(
 }
 
 async function ensureAccount(
-  service: ReturnType<typeof createClient>,
+  service: SupabaseClient,
   account: SeedAccount,
   stationByNumber: Map<number, { id: string; name: string }>,
   adminUserId: string,
@@ -181,9 +186,7 @@ async function main() {
     process.exit(1);
   }
 
-  const service = createClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  const service = createService(url, key);
 
   const { data: stations, error: stError } = await service
     .from('stations')
