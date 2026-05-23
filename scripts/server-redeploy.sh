@@ -5,9 +5,12 @@ set -euo pipefail
 APP_DIR="${APP_DIR:-/var/www/entripreneurship-app}"
 cd "$APP_DIR"
 
-echo "==> git pull"
-git stash push -m "deploy-$(date +%s)" public/sw.js 2>/dev/null || true
-git pull origin main
+echo "==> git sync (origin/main)"
+git fetch origin main
+# next build regenerates public/sw.js — discard local drift on VPS
+git stash push -m "deploy-$(date +%s)" -- public/sw.js 2>/dev/null || true
+git reset --hard origin/main
+git log -1 --oneline
 
 echo "==> npm ci && build"
 npm ci
