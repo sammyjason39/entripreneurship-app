@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ClipboardList } from 'lucide-react';
 import { requireParticipant } from '@/lib/auth';
 import { getTeamForUser } from '@/lib/team';
 import { createClient } from '@/lib/supabase/server';
@@ -7,6 +8,7 @@ import { QuickActionGrid } from '@/components/app/QuickActionGrid';
 import { SponsorRow } from '@/components/app/SponsorRow';
 import { TransactionItem } from '@/components/app/TransactionItem';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 export default async function HomePage() {
   const { user, profile } = await requireParticipant();
@@ -51,6 +53,21 @@ export default async function HomePage() {
       {teamData && <BalanceCard balance={teamData.team.balance} large />}
 
       <QuickActionGrid />
+
+      <Card className="space-y-3 border-accent-yellow/60 bg-bg-secondary">
+        <div className="flex items-start gap-3">
+          <ClipboardList className="mt-0.5 shrink-0 text-accent-yellow" size={28} />
+          <div className="min-w-0 flex-1">
+            <p className="font-display text-[10px] font-bold text-accent-yellow">WAJIB — EVALUATION FORM</p>
+            <p className="mt-1 font-body text-sm text-text-on-surface">
+              Semua peserta harus mengisi form evaluasi acara sebelum pulang.
+            </p>
+          </div>
+        </div>
+        <Link href="/evaluation">
+          <Button className="w-full">ISI EVALUATION FORM</Button>
+        </Link>
+      </Card>
 
       <Card>
         <p className="font-display text-[10px] text-text-secondary">ACTIVE MISSION</p>

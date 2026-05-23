@@ -1,64 +1,52 @@
 import { createClient } from '@/lib/supabase/server';
-import { teamNameFromJoin } from '@/lib/supabase-helpers';
 import { Card } from '@/components/ui/card';
+import { buildRaceLeaderboard } from '@/lib/race-leaderboard';
 
 export default async function LeaderboardPage() {
   const supabase = await createClient();
 
-  const { data: richest } = await supabase
+  const { data: teams } = await supabase
     .from('teams')
-    .select('name, balance')
-    .order('balance', { ascending: false })
-    .limit(20);
+    .select('id, name, balance, race_started_at, race_finished_at');
 
-  const { data: pos7 } = await supabase.from('stations').select('id').eq('number', 7).single();
-  let fastest: { name: string; submitted_at: string }[] = [];
-  if (pos7) {
-    const { data: subs } = await supabase
-      .from('submissions')
-      .select('submitted_at, teams(name)')
-      .eq('station_id', pos7.id)
-      .eq('status', 'approved')
-      .order('submitted_at', { ascending: true })
-      .limit(20);
-    fastest =
-      subs?.map((s) => ({
-        name: teamNameFromJoin(s.teams),
-        submitted_at: s.submitted_at,
-      })) ?? [];
-  }
+  const richest = [...(teams ?? [])].sort((a, b) => b.balance - a.balance).slice(0, 20);
+  const fastest = buildRaceLeaderboard(teams ?? []);
 
   return (
-    <main className="p-4 space-y-6">
+    <main className="space-y-6 p-4">
       <h1 className="font-display text-lg">LEADERBOARD</h1>
       <section>
-        <p className="font-display text-[10px] text-accent-yellow mb-2">THE RICHEST</p>
+        <p className="mb-2 font-display text-[10px] text-accent-yellow">THE RICHEST</p>
         <div className="space-y-2">
-          {richest?.map((t, i) => (
-            <Card key={t.name} className="flex justify-between py-2">
+          {richest.map((t, i) => (
+            <Card key={t.id} className="flex justify-between py-2">
               <span className="font-display text-xs">
                 #{i + 1} {t.name}
               </span>
-              <span className="text-accent-green font-display text-xs">{t.balance} EC</span>
+              <span className="font-display text-xs text-accent-green">{t.balance} EC</span>
             </Card>
           ))}
         </div>
       </section>
       <section>
-        <p className="font-display text-[10px] text-accent-blue mb-2">THE FASTEST</p>
+        <p className="mb-2 font-display text-[10px] text-accent-blue">THE FASTEST</p>
+        <p className="mb-2 font-body text-[10px] text-text-secondary">
+          Race timer — dari start trek (Pos 1 / pilih company) sampai selesai di Pos 7.
+        </p>
         <div className="space-y-2">
           {fastest.map((t, i) => (
-            <Card key={`${t.name}-${i}`} className="flex justify-between py-2">
+            <Card key={t.id} className="flex justify-between py-2">
               <span className="font-display text-xs">
                 #{i + 1} {t.name}
+                {t.status === 'racing' && (
+                  <span className="ml-1 font-body text-[9px] text-accent-yellow">(berlari)</span>
+                )}
               </span>
-              <span className="text-text-secondary font-body text-[10px]">
-                {new Date(t.submitted_at).toLocaleTimeString('id-ID')}
-              </span>
+              <span className="font-display text-xs text-accent-blue">{t.timeLabel}</span>
             </Card>
           ))}
           {fastest.length === 0 && (
-            <p className="text-text-secondary text-sm">No completions yet</p>
+            <p className="text-sm text-text-secondary">Belum ada tim yang memulai race timer</p>
           )}
         </div>
       </section>
