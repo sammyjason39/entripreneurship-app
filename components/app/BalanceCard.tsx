@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { EVALUATION_FORM_URL } from '@/lib/event-forms';
 import { formatEnCoins } from '@/lib/utils';
 
 interface BalanceCardProps {
@@ -43,6 +45,18 @@ export function BalanceCard({ balance, teamName, large }: BalanceCardProps) {
       >
         {formatEnCoins(display)}
       </p>
+      {large && (
+        <a
+          href={EVALUATION_FORM_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="relative z-10 mt-4 block"
+        >
+          <Button type="button" variant="outline" className="w-full">
+            FILL FORM
+          </Button>
+        </a>
+      )}
     </Card>
   );
 }
