@@ -1,11 +1,11 @@
 import { redirect } from 'next/navigation';
-import { requireCrewMember } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 import { getCrewAssignment } from '@/lib/crew-assignment';
 import { getCrewPermissions } from '@/lib/crew-permissions';
 import { CrewRegisterForm } from '@/components/crew/CrewRegisterForm';
 
 export default async function CrewRegisterPage() {
-  const { user, profile } = await requireCrewMember();
+  const { user, profile } = await requireAuth();
   const assignment = await getCrewAssignment(user.id);
   const permissions = getCrewPermissions(profile, assignment);
 

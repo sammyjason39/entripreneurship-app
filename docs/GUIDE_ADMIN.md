@@ -178,7 +178,7 @@ Middleware sends unauthenticated users to `/auth/login`.
 
 Crew **cannot** call admin registration APIs (smoke-tested: 401/403).
 
-Admin visiting `/crew` (crew home) is redirected to `/admin`. Jury tools (`/crew/leaderboard`, map, tracking, submissions, teams) are open to admin via `requireCrewOrAdmin`.
+Admin visiting `/crew` (crew home) is redirected to `/admin`. Jury tools under `/crew/submissions`, `/crew/leaderboard`, `/crew/teams`, `/crew/tracking`, and `/crew/map` use the `(jury)` route group (`requireCrewOrAdmin`). Crew-only tools (pay, scan, station) use `(field)` (`requireCrewMember`).
 
 ---
 

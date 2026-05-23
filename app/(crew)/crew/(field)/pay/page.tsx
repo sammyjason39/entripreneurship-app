@@ -1,11 +1,8 @@
 import Link from 'next/link';
-import { requireCrewMember } from '@/lib/auth';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 export default async function CrewPayPage() {
-  await requireCrewMember();
-
   return (
     <main className="space-y-4 p-4 text-on-bg-readable">
       <div>
