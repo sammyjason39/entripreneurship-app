@@ -17,15 +17,19 @@
   --color-border-active: #5d9cff;
   --color-accent-green: #8fdc5c;
   --color-accent-blue: #5d9cff;
+  /* Panels (cards): darker gold. Desktop (navy): bright cream — see .text-accent-yellow rules */
   --color-accent-yellow: #ffe566;
+  --color-accent-yellow-on-bg: #fff6c8;
+  --color-accent-yellow-on-surface: #7a5a00;
   --color-accent-red: #ff4444;
   --color-text-on-bg: #ffffff;
-  --color-text-on-bg-muted: #e2ebff;
+  --color-text-on-bg-muted: #eef4ff;
   --color-text-on-surface: #000000;
   --color-text-primary: #000000;
+  /* Muted copy on light panels only — on navy desktop use --color-text-on-bg-muted via utilities */
   --color-text-secondary: #2a2a2a;
   --color-text-accent: #2d6b1f;
-  --color-link-on-bg: #ffe566;
+  --color-link-on-bg: #fff6c8;
   --color-text-on-accent: #000000;
   --color-pixel-green: #78c850;
   --color-pixel-blue: #3b5998;
@@ -47,6 +51,8 @@
   --color-accent-green: #2e7d32;
   --color-accent-blue: #1e4a9a;
   --color-accent-yellow: #9a7200;
+  --color-accent-yellow-on-bg: #9a7200;
+  --color-accent-yellow-on-surface: #9a7200;
   --color-accent-red: #b00000;
   --color-text-on-bg: #000000;
   --color-text-on-bg-muted: #2d2d2d;
@@ -198,6 +204,42 @@ main {
     font-weight: 600;
     text-shadow: inherit;
   }
+}
+
+/*
+ * Dark desktop (navy): text-secondary / accent-yellow were tuned for gray cards,
+ * so they vanished on bg-primary. Restore contrast on navy; keep card/panel text dark.
+ */
+[data-theme='dark'] .text-text-secondary {
+  color: var(--color-text-on-bg-muted);
+}
+
+[data-theme='dark'] .text-text-on-surface .text-text-secondary,
+[data-theme='dark'] .bg-bg-secondary .text-text-secondary,
+[data-theme='dark'] .bg-bg-tertiary .text-text-secondary,
+[data-theme='dark'] .win98-dialog .text-text-secondary,
+[data-theme='dark'] .docs-prose .text-text-secondary {
+  color: var(--color-text-secondary);
+  text-shadow: none;
+}
+
+[data-theme='dark'] .text-accent-yellow {
+  color: var(--color-accent-yellow-on-bg);
+}
+
+[data-theme='dark'] .text-text-on-surface .text-accent-yellow,
+[data-theme='dark'] .bg-bg-secondary .text-accent-yellow,
+[data-theme='dark'] .bg-bg-tertiary .text-accent-yellow,
+[data-theme='dark'] .win98-dialog .text-accent-yellow,
+[data-theme='dark'] .docs-prose .text-accent-yellow {
+  color: var(--color-accent-yellow-on-surface);
+  text-shadow: none;
+}
+
+[data-theme='dark'] .text-text-on-surface .text-accent-yellow svg,
+[data-theme='dark'] .bg-bg-secondary .text-accent-yellow svg,
+[data-theme='dark'] .bg-bg-tertiary .text-accent-yellow svg {
+  color: var(--color-accent-yellow-on-surface);
 }
 
 /* Leaflet — EnTripreneurship journey map */
