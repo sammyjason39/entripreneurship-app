@@ -76,7 +76,8 @@ export function StationDeskPanel({
           <QRDisplay value={qrValue} label="Teams scan this to check in" />
         </div>
         <p className="mt-2 font-body text-[10px] text-text-secondary">
-          Print or display full screen at your post.
+          Tampilkan QR ini di meja Pos — jangan di-scan oleh crew. Tim peserta scan lewat Missions → Scan
+          station.
         </p>
       </Card>
 

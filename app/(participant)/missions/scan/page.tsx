@@ -17,31 +17,40 @@ export default function StationScanPage() {
   const handleScan = async (raw: string) => {
     setError('');
     setMessage('');
-    const parsed = parseQrData(raw);
-    if (!parsed || parsed.type !== 'station') {
-      setError('Not a station QR. Scan the poster at the Pos.');
-      return;
+    try {
+      const parsed = parseQrData(raw);
+      if (!parsed || parsed.type !== 'station') {
+        setError('Bukan QR Pos. Scan poster check-in di station, bukan QR Bank peserta.');
+        return;
+      }
+
+      setLoading(true);
+      const res = await fetch('/api/stations/check-in', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: parsed.token }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        message?: string;
+        station?: { id?: string };
+      };
+      setLoading(false);
+
+      if (!res.ok) {
+        setError(data.error ?? 'Check-in gagal');
+        return;
+      }
+
+      setMessage(data.message ?? 'Checked in!');
+      setTimeout(() => {
+        if (data.station?.id) router.push(`/missions/${data.station.id}`);
+        else router.push('/missions');
+      }, 1500);
+    } catch {
+      setLoading(false);
+      setError('Gagal check-in. Coba lagi.');
     }
-
-    setLoading(true);
-    const res = await fetch('/api/stations/check-in', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: parsed.token }),
-    });
-    const data = await res.json();
-    setLoading(false);
-
-    if (!res.ok) {
-      setError(data.error ?? 'Check-in failed');
-      return;
-    }
-
-    setMessage(data.message ?? 'Checked in!');
-    setTimeout(() => {
-      if (data.station?.id) router.push(`/missions/${data.station.id}`);
-      else router.push('/missions');
-    }, 1500);
   };
 
   return (
