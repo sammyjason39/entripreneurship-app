@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getAuthProfile, isNextResponse } from '@/lib/api-helpers';
-import { MAX_TEAM_SIZE } from '@/lib/types';
+import { MAX_TEAM_SIZE, TEAM_ROLES } from '@/lib/types';
 
 export async function POST(request: Request) {
   const auth = await getAuthProfile();
@@ -14,6 +14,10 @@ export async function POST(request: Request) {
 
   if (!join_code || !team_role) {
     return NextResponse.json({ error: 'Code and role required' }, { status: 400 });
+  }
+
+  if (!TEAM_ROLES.includes(team_role as (typeof TEAM_ROLES)[number])) {
+    return NextResponse.json({ error: 'Invalid role. Team has CEO, CTO, CFO, CMO only.' }, { status: 400 });
   }
 
   const supabase = await createClient();

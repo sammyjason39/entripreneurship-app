@@ -6,7 +6,7 @@ export type CrewAssignmentKind =
   | 'registration'
   | 'roaming'
   | 'general';
-export type TeamRole = 'CEO' | 'CTO' | 'CFO' | 'CMO' | 'COO' | 'CPO';
+export type TeamRole = 'CEO' | 'CTO' | 'CFO' | 'CMO';
 export type SubmissionStatus = 'pending' | 'approved' | 'rejected';
 export type TransactionType = 'reward' | 'spend' | 'transfer';
 export type ActivityType = 'form' | 'image' | 'both';
@@ -87,6 +87,8 @@ export interface Team {
   balance: number;
   business_idea: string | null;
   company_track: string | null;
+  race_started_at: string | null;
+  race_finished_at: string | null;
   innovative_score: number | null;
   outfit_score: number | null;
   created_at: string;
@@ -192,7 +194,7 @@ export interface QrPayload {
   stationId?: string;
 }
 
-export const TEAM_ROLES: TeamRole[] = ['CEO', 'CTO', 'CFO', 'CMO', 'COO', 'CPO'];
-export const MAX_TEAM_SIZE = 6;
+export const TEAM_ROLES: TeamRole[] = ['CEO', 'CTO', 'CFO', 'CMO'];
+export const MAX_TEAM_SIZE = 4;
 export const PIN_LENGTH = 6;
 export const QR_SESSION_MINUTES = 5;

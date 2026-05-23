@@ -3,6 +3,9 @@ import { Card } from '@/components/ui/card';
 import { ReviewActions } from '@/components/app/ReviewActions';
 import { notFound } from 'next/navigation';
 import { profileNameFromJoin } from '@/lib/supabase-helpers';
+import { trackLabel, isCompanySlug } from '@/lib/event-tracks';
+import { formatRaceElapsed } from '@/lib/format-race-time';
+import type { CompanySlug } from '@/lib/content-types';
 
 export default async function CrewTeamDetailPage({
   params,
@@ -34,10 +37,24 @@ export default async function CrewTeamDetailPage({
         <h1 className="font-display text-xl">{team.name}</h1>
         <p className="font-display text-xs text-accent-yellow">CODE: {team.join_code}</p>
         <p className="font-display text-lg text-accent-green mt-2">{team.balance} EC</p>
+        <p className="mt-2 font-body text-sm">
+          Trek:{' '}
+          <strong>
+            {team.company_track && isCompanySlug(team.company_track)
+              ? trackLabel(team.company_track as CompanySlug)
+              : 'Belum dipilih'}
+          </strong>
+        </p>
+        <p className="font-display text-sm tabular-nums text-accent-yellow">
+          Timer: {formatRaceElapsed(team.race_started_at, team.race_finished_at) ?? '—'}
+          {team.race_finished_at ? ' (finish)' : ''}
+        </p>
       </div>
 
       <Card>
-        <p className="font-display text-[10px] text-text-secondary mb-2">MEMBERS</p>
+        <p className="font-display text-[10px] text-text-secondary mb-2">
+          MEMBERS ({members?.length ?? 0}/4)
+        </p>
         {members?.map((m) => (
           <p key={m.team_role} className="font-body text-sm">
             {profileNameFromJoin(m.profiles)} — {m.team_role}

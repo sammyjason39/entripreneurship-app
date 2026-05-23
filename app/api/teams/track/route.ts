@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createServiceClient } from '@/lib/supabase/server';
 import { isCompanySlug } from '@/lib/event-tracks';
+import { startTeamRaceIfNeeded } from '@/lib/team-economy';
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -37,16 +39,25 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Only your CEO can choose the team track' }, { status: 403 });
   }
 
-  const { data: updated, error } = await supabase
+  const service = await createServiceClient();
+  const { data: updated, error } = await service
     .from('teams')
     .update({ company_track: slug })
     .eq('id', teamRow.id)
-    .select('id, name, company_track')
+    .select('id, name, company_track, race_started_at, race_finished_at')
     .single();
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, team: updated });
+  await startTeamRaceIfNeeded(teamRow.id);
+
+  const { data: refreshed } = await service
+    .from('teams')
+    .select('id, name, company_track, race_started_at, race_finished_at')
+    .eq('id', teamRow.id)
+    .single();
+
+  return NextResponse.json({ ok: true, team: refreshed ?? updated });
 }

@@ -80,8 +80,8 @@ export function TrackPicker({ currentTrack, isCeo }: Props) {
       <Card className="border-accent-yellow/50 space-y-2">
         <p className="font-display text-xs text-accent-yellow">PILIH TREK PERUSAHAAN</p>
         <p className="font-body text-sm text-text-secondary">
-          Satu trek untuk seluruh tim — menentukan case study di Pos 1 dan innovation card di Pos
-          3.
+          Satu trek untuk seluruh tim. Timer lomba mulai saat trek dikonfirmasi. Modal awal & biaya
+          transport otomatis saat check-in di Pos berikutnya.
         </p>
       </Card>
       <div className="space-y-2">

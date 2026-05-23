@@ -5,6 +5,7 @@ import { QRDisplay } from '@/components/app/QRDisplay';
 import { buildStationCheckinQr } from '@/lib/qr';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Station6CompetePanel } from '@/components/crew/Station6CompetePanel';
 
 type ActiveVisit = {
   id: string;
@@ -78,6 +79,8 @@ export function StationDeskPanel({
           Print or display full screen at your post.
         </p>
       </Card>
+
+      {stationNumber === 6 && <Station6CompetePanel visits={visits} />}
 
       <div>
         <h2 className="font-display text-sm">TEAMS HERE NOW ({visits.length})</h2>

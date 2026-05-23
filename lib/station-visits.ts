@@ -1,5 +1,6 @@
 import { createServiceClient } from '@/lib/supabase/server';
 import { stationPercentToLatLng } from '@/lib/event-map';
+import { onStationCheckIn } from '@/lib/team-economy';
 
 export type StationVisitRow = {
   id: string;
@@ -98,6 +99,18 @@ export async function checkInTeamAtStation(params: {
     });
   }
 
+  if (station?.number) {
+    try {
+      await onStationCheckIn({
+        teamId: params.teamId,
+        stationNumber: station.number,
+        userId: params.userId,
+      });
+    } catch (e) {
+      console.error('team-economy check-in', e);
+    }
+  }
+
   return {
     ok: true as const,
     alreadyHere: false,
@@ -133,6 +146,18 @@ export async function checkOutTeamVisit(params: {
     .eq('id', params.visitId);
 
   if (error) throw new Error(error.message);
+
+  const { data: st } = await service
+    .from('stations')
+    .select('number')
+    .eq('id', visit.station_id)
+    .single();
+
+  if (st?.number === 7) {
+    const { finishTeamRaceIfNeeded } = await import('@/lib/team-economy');
+    await finishTeamRaceIfNeeded(visit.team_id);
+  }
+
   return { ok: true as const };
 }
 

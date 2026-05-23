@@ -210,8 +210,8 @@ export default function OnboardingPage() {
       {step === 2 && (
         <>
           <p className="font-body text-sm text-text-secondary leading-relaxed">
-            Form your startup team for the event. CEOs create a team and share a join code; everyone
-            else joins with that code and picks an open role.
+            Setiap tim 4 orang: CEO, CTO, CFO, CMO. CEO buat tim & share join code; anggota lain join
+            dan pilih role yang masih kosong.
           </p>
 
           {!mode && (

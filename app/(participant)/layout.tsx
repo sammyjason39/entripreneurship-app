@@ -15,7 +15,12 @@ export default async function ParticipantLayout({
   return (
     <div className="mx-auto min-h-dvh w-full max-w-[480px]">
       <LocationTracker enabled={profile.onboarding_complete} />
-      <TopBar teamName={teamData?.team.name} balance={teamData?.team.balance} />
+      <TopBar
+        teamName={teamData?.team.name}
+        balance={teamData?.team.balance}
+        raceStartedAt={teamData?.team.race_started_at}
+        raceFinishedAt={teamData?.team.race_finished_at}
+      />
       <div className="pb-24 pt-2">{children}</div>
       <BottomNav />
     </div>
