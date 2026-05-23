@@ -18,6 +18,8 @@ import type { CrewAssignmentKind } from '../lib/types';
 
 const CREW_PASSWORD = 'EntripCrew2026!';
 const ADMIN_PASSWORD = 'EntripAdmin2026!';
+/** Crew logins per station (Pos 1–7): station1a … station7d */
+export const STATION_CREW_SLOTS = ['a', 'b', 'c', 'd'] as const;
 /** Shared crew transaction PIN for bank desk / pay tools (documented in docs/CREW_LOGINS.md) */
 export const CREW_TRANSACTION_PIN = '888888';
 
@@ -65,14 +67,25 @@ const ACCOUNTS: SeedAccount[] = [
     assignmentKind: 'roaming',
     stationNumber: null,
   },
-  ...([1, 2, 3, 4, 5, 6, 7] as const).map((n) => ({
-    email: `station${n}@entripreneurship.fun`,
-    fullName: `Station ${n} Judge`,
-    appRole: 'crew' as const,
-    assignmentKind: 'station' as const,
-    stationNumber: n,
-  })),
+  ...stationCrewAccounts(),
 ];
+
+/** station1a@ … station7d@ — four crew phones per Pos */
+function stationCrewAccounts(): SeedAccount[] {
+  const out: SeedAccount[] = [];
+  for (const n of [1, 2, 3, 4, 5, 6, 7] as const) {
+    for (const slot of STATION_CREW_SLOTS) {
+      out.push({
+        email: `station${n}${slot}@entripreneurship.fun`,
+        fullName: `Station ${n} Crew ${slot.toUpperCase()}`,
+        appRole: 'crew',
+        assignmentKind: 'station',
+        stationNumber: n,
+      });
+    }
+  }
+  return out;
+}
 
 function loadEnv() {
   const path = resolve(process.cwd(), '.env.local');

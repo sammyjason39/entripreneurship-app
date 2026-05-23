@@ -64,7 +64,7 @@ Participants must check in before the CEO can submit for that Pos.
 
 Detail: [STATION_QR.md](./STATION_QR.md).
 
-**Station accounts:** `station1@` … `station7@` are tied to Pos 1–7 in crew assignments (for labeling; same tools unless you only use the station page).
+**Station accounts:** `station1a@` … `station7d@` (four per Pos) are tied to Pos 1–7 in crew assignments — see [CREW_LOGINS.md](./CREW_LOGINS.md).
 
 ---
 

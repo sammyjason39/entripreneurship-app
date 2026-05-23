@@ -35,7 +35,7 @@ After `npm run db:seed-crew`, all **crew** accounts use this **6-digit PIN** whe
 
 Change it in production if this doc is public. Re-run `db:seed-crew` to reset PINs on seeded accounts.
 
-## Accounts
+## Shared desk accounts
 
 | Email | Name | Access |
 |-------|------|--------|
@@ -44,13 +44,22 @@ Change it in production if this doc is public. Re-run `db:seed-crew` to reset PI
 | `jury@entripreneurship.fun` | Jury / MC | `/crew` — submissions, leaderboard |
 | `registration@entripreneurship.fun` | Registration Desk | `/crew` |
 | `roaming@entripreneurship.fun` | Roaming Crew | `/crew` |
-| `station1@entripreneurship.fun` | Station 1 Judge | `/crew` — Pos 1 |
-| `station2@entripreneurship.fun` | Station 2 Judge | `/crew` — Pos 2 |
-| `station3@entripreneurship.fun` | Station 3 Judge | `/crew` — Pos 3 |
-| `station4@entripreneurship.fun` | Station 4 Judge | `/crew` — Pos 4 |
-| `station5@entripreneurship.fun` | Station 5 Judge | `/crew` — Pos 5 |
-| `station6@entripreneurship.fun` | Station 6 Judge | `/crew` — Pos 6 |
-| `station7@entripreneurship.fun` | Station 7 Judge | `/crew` — Pos 7 |
+
+## Station crew (4 per Pos)
+
+Pattern: `station{pos}{a|b|c|d}@entripreneurship.fun` — password `EntripCrew2026!`, transaction PIN `888888`, assigned to that Pos in crew assignments.
+
+| Pos | Email |
+|-----|--------|
+| **1** | `station1a@` `station1b@` `station1c@` `station1d@` |
+| **2** | `station2a@` … `station2d@` |
+| **3** | `station3a@` … `station3d@` |
+| **4** | `station4a@` … `station4d@` |
+| **5** | `station5a@` … `station5d@` |
+| **6** | `station6a@` … `station6d@` |
+| **7** | `station7a@` … `station7d@` |
+
+Full addresses use domain `@entripreneurship.fun` (e.g. `station3b@entripreneurship.fun` → **Station 3 Crew B**, Pos 3).
 
 ## Create or reset accounts
 
@@ -58,11 +67,21 @@ Change it in production if this doc is public. Re-run `db:seed-crew` to reset PI
 npm run db:seed-crew
 ```
 
+Dry run (no API calls):
+
+```bash
+npx tsx scripts/seed-crew-accounts.ts --dry-run
+```
+
+Requires `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in `.env.local`.
+
 Safe to re-run — updates passwords and profiles to match this doc.
+
+**Total seeded:** 1 admin + 4 desk + 28 station = **33 accounts**.
 
 ## Quick test
 
 1. Open https://entripreneurship.fun/auth/login  
 2. Expand **Crew / admin login**  
-3. `bank@entripreneurship.fun` / `EntripCrew2026!`  
-4. You should land on `/crew`
+3. `station2a@entripreneurship.fun` / `EntripCrew2026!`  
+4. You should land on `/crew` with Pos 2 assignment

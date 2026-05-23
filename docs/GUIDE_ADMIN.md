@@ -105,7 +105,7 @@ Filter: pending / approved / rejected / all.
 | `jury` | jury@ |
 | `registration` | registration@ |
 | `roaming` | roaming@ |
-| `station` | station1@ … station7@ |
+| `station` | station1a@ … station7d@ (4 per Pos) |
 | `general` | admin@ |
 
 **Admin can:**
@@ -178,7 +178,7 @@ Middleware sends unauthenticated users to `/auth/login`.
 
 Crew **cannot** call admin registration APIs (smoke-tested: 401/403).
 
-Admin visiting `/crew` is redirected to `/admin` by `requireCrewMember`.
+Admin visiting `/crew` (crew home) is redirected to `/admin`. Jury tools (`/crew/leaderboard`, map, tracking, submissions, teams) are open to admin via `requireCrewOrAdmin`.
 
 ---
 
