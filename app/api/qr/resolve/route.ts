@@ -24,9 +24,12 @@ export async function POST(request: Request) {
     .eq('user_id', profile.id)
     .maybeSingle();
 
+  const teamsRaw = member?.teams;
+  const team = Array.isArray(teamsRaw) ? teamsRaw[0] : teamsRaw;
+
   return NextResponse.json({
     profile,
-    team: member?.teams ?? null,
+    team: team ?? null,
     team_id: member?.team_id ?? null,
   });
 }

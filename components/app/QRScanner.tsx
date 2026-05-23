@@ -10,14 +10,36 @@ interface QRScannerProps {
   onError?: (msg: string) => void;
 }
 
+async function safeStopScanner(scanner: Html5Qrcode | null) {
+  if (!scanner) return;
+  try {
+    await scanner.stop();
+  } catch {
+    // html5-qrcode throws if stop() called when not scanning — ignore
+  }
+  try {
+    scanner.clear();
+  } catch {
+    // ignore clear errors when element already removed
+  }
+}
+
 export function QRScanner({ onScan, onError }: QRScannerProps) {
   const [manual, setManual] = useState('');
   const [cameraDenied, setCameraDenied] = useState(false);
   const [starting, setStarting] = useState(true);
   const scannerRef = useRef<Html5Qrcode | null>(null);
-  const startedRef = useRef(false);
+  const onScanRef = useRef(onScan);
+  const onErrorRef = useRef(onError);
+  const handledRef = useRef(false);
+  const mountedRef = useRef(true);
+
+  onScanRef.current = onScan;
+  onErrorRef.current = onError;
 
   useEffect(() => {
+    mountedRef.current = true;
+    handledRef.current = false;
     const id = 'qr-reader';
     const scanner = new Html5Qrcode(id);
     scannerRef.current = scanner;
@@ -27,27 +49,33 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
         { facingMode: 'environment' },
         { fps: 10, qrbox: { width: 250, height: 250 } },
         (decoded) => {
-          onScan(decoded);
-          scanner.stop().catch(() => {});
+          if (handledRef.current || !mountedRef.current) return;
+          handledRef.current = true;
+          void (async () => {
+            await safeStopScanner(scanner);
+            if (mountedRef.current) {
+              onScanRef.current(decoded);
+            }
+          })();
         },
         () => {}
       )
       .then(() => {
-        startedRef.current = true;
-        setStarting(false);
+        if (mountedRef.current) setStarting(false);
       })
       .catch(() => {
+        if (!mountedRef.current) return;
         setCameraDenied(true);
         setStarting(false);
-        onError?.('Camera access denied. Enter code manually.');
+        onErrorRef.current?.('Camera access denied. Enter code manually.');
       });
 
     return () => {
-      if (startedRef.current) {
-        scanner.stop().catch(() => {});
-      }
+      mountedRef.current = false;
+      void safeStopScanner(scannerRef.current);
+      scannerRef.current = null;
     };
-  }, [onScan, onError]);
+  }, []);
 
   return (
     <div className="space-y-4">
