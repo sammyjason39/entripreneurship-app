@@ -35,6 +35,18 @@ export function SubmissionForm({
   const submit = async () => {
     setLoading(true);
     setError('');
+
+    if (needsForm && !summary.trim()) {
+      setError('Isi jawaban terlebih dahulu.');
+      setLoading(false);
+      return;
+    }
+    if (needsImage && !file && !existingId) {
+      setError('Upload foto terlebih dahulu.');
+      setLoading(false);
+      return;
+    }
+
     const visitRes = await fetch(
       `/api/stations/visit-status?stationId=${encodeURIComponent(station.id)}`
     );
